@@ -8,11 +8,8 @@
 
 void UAN_Attack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
-	if (ADefaultPlayerCharacter* MyCharacter = MeshComp->GetOwner<ADefaultPlayerCharacter>())
-	{
-		if (AController* MyController = MyCharacter->GetController())
-		{
-			MyCharacter->Attack();
-		}
-	}
+	ADefaultPlayerCharacter* MyCharacter = MeshComp->GetOwner<ADefaultPlayerCharacter>();
+	if (!MyCharacter) return;
+	
+	MyCharacter->Attack();
 }

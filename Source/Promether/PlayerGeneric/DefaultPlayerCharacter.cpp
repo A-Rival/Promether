@@ -4,6 +4,7 @@
 #include "DefaultPlayerCharacter.h"
 #include "DefaultPlayerState.h"
 #include "Engine/DamageEvents.h"
+#include "Kismet/GameplayStatics.h"
 
 ADefaultPlayerCharacter::ADefaultPlayerCharacter()
 {
@@ -78,9 +79,10 @@ void ADefaultPlayerCharacter::Tick(float DeltaTime)
 
 void ADefaultPlayerCharacter::Attack_Implementation()
 {
+	//UGameplayStatics::ApplyDamage(Target, MyState->GetAttackDamage(), Cast<AController>(GetOwner()), this, UBaseAttack::StaticClass());
 }
 
-float ADefaultPlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+float ADefaultPlayerCharacter::TakeDamage_Implementation(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
 	float ReturnValue = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
@@ -146,28 +148,70 @@ float ADefaultPlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEven
 
 void ADefaultPlayerCharacter::Skill1_Implementation()
 {
+	NetMulticast_Skill1();
+}
+
+void ADefaultPlayerCharacter::NetMulticast_Skill1_Implementation()
+{
+	BP_Skill1();
 }
 
 void ADefaultPlayerCharacter::Skill2_Implementation()
 {
+	NetMulticast_Skill2();
+}
+
+void ADefaultPlayerCharacter::NetMulticast_Skill2_Implementation()
+{
+	BP_Skill2();
 }
 
 void ADefaultPlayerCharacter::Skill3_Implementation()
 {
+	NetMulticast_Skill3();
+}
+
+void ADefaultPlayerCharacter::NetMulticast_Skill3_Implementation()
+{
+	BP_Skill3();
 }
 
 void ADefaultPlayerCharacter::Skill4_Implementation()
 {
+	NetMulticast_Skill4();
+}
+
+void ADefaultPlayerCharacter::NetMulticast_Skill4_Implementation()
+{
+	BP_Skill4();
 }
 
 void ADefaultPlayerCharacter::Skill5_Implementation()
 {
+	NetMulticast_Skill5();
+}
+
+void ADefaultPlayerCharacter::NetMulticast_Skill5_Implementation()
+{
+	BP_Skill5();
 }
 
 void ADefaultPlayerCharacter::Skill6_Implementation()
 {
+	NetMulticast_Skill6();
+}
+
+void ADefaultPlayerCharacter::NetMulticast_Skill6_Implementation()
+{
+	BP_Skill6();
 }
 
 void ADefaultPlayerCharacter::Skill7_Implementation()
 {
+	NetMulticast_Skill7();
+}
+
+void ADefaultPlayerCharacter::NetMulticast_Skill7_Implementation()
+{
+	BP_Skill7();
 }

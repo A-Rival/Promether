@@ -22,27 +22,72 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintNativeEvent)
-	void			Attack()											;
-	virtual float	TakeDamage(	float Damage,
+	void	Attack();
+	UFUNCTION(BlueprintNativeEvent)
+	float	TakeDamage(	float Damage,
 								struct FDamageEvent const& DamageEvent,
 								AController* EventInstigator,
 								AActor* DamageCauser )					override;
 
-	UFUNCTION(BlueprintNativeEvent)
-	void Skill1();
-	UFUNCTION(BlueprintNativeEvent)
-	void Skill2();
-	UFUNCTION(BlueprintNativeEvent)
-	void Skill3();
-	UFUNCTION(BlueprintNativeEvent)
-	void Skill4();
 
-	UFUNCTION(BlueprintNativeEvent)
+
+
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void Skill1();
+	//Override me
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_Skill1();
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_Skill1();
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void Skill2();
+	//Override me
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_Skill2();
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_Skill2();
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void Skill3();
+	//Override me
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_Skill3();
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_Skill3();
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void Skill4();
+	//Override me
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_Skill4();
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_Skill4();
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Skill5();
-	UFUNCTION(BlueprintNativeEvent)
+	//Override me
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_Skill5();
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_Skill5();
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Skill6();
-	UFUNCTION(BlueprintNativeEvent)
+	//Override me
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_Skill6();
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_Skill6();
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Skill7();
+	//Override me
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_Skill7();
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_Skill7();
 
 	float			GetHealth()											const { return Health; }
 	float			GetHPRegeneration()									const { return HPRegeneration; }

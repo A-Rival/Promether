@@ -7,11 +7,8 @@
 
 void UAN_Skill3::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
-	if (ADefaultPlayerCharacter* MyCharacter = MeshComp->GetOwner<ADefaultPlayerCharacter>())
-	{
-		if (AController* MyController = MyCharacter->GetController())
-		{
-			MyCharacter->Skill3();
-		}
-	}
+	ADefaultPlayerCharacter* MyCharacter = MeshComp->GetOwner<ADefaultPlayerCharacter>();
+	if (!MyCharacter) return; 
+	
+	MyCharacter->Skill3();
 }

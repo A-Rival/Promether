@@ -1,0 +1,79 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "DefaultStats.generated.h"
+
+USTRUCT(Atomic, BlueprintType)
+struct FDefaultStats
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 XP;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Health;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HPRegeneration;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HealAndShieldpower;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Armor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MagicResistance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Tenacity;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float SlowRisist;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackDamage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AbilityPower;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float CriticalStrikeChance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float CriticalStrikeDamage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ArmorPenetration;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MagicPenetration;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float LifeSteal;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float PhysicalVamp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Omnivamp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AbilityHaste;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Mana;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ManaRegeneration;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Energy;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float EnergyRegeneration;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackRange;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MovementSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GoldGeneration;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackDamageGrowth;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackSpeedGrowth;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ArmorGrowth;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MagicResistanceGrowth;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HealthGrowth;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HealthRegenerationGrowth;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ManaGrowth;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ManaRegenerationGrowth;
+};

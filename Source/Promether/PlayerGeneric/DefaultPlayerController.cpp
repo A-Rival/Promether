@@ -233,6 +233,17 @@ void ADefaultPlayerController::SetupInputComponent()
 
 void ADefaultPlayerController::Skill1()
 {
+	//if (!(GetPlayerState<ADefaultPlayerState>()->Stats.Mana >= 100))
+	//	return;
+
+	FVector Location = GetPawn()->GetActorLocation();
+	Location.Z = 0;
+
+	SimpleMoveToLocation(this, Location);
+	this->MoveToLocation(Location);
+
+	GetPawn()->SetActorRotation((GetMouseHitLocation() - Location).Rotation());
+
 	UE_LOG(LogTemp, Warning, TEXT("Skill1"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
 	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill1);
@@ -240,6 +251,14 @@ void ADefaultPlayerController::Skill1()
 
 void ADefaultPlayerController::Skill2()
 {
+	FVector Location = GetPawn()->GetActorLocation();
+	Location.Z = 0;
+
+	SimpleMoveToLocation(this, Location);
+	this->MoveToLocation(Location);
+
+	GetPawn()->SetActorRotation((GetMouseHitLocation() - Location).Rotation());
+
 	UE_LOG(LogTemp, Warning, TEXT("Skill2"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
 	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill2);
@@ -247,6 +266,14 @@ void ADefaultPlayerController::Skill2()
 
 void ADefaultPlayerController::Skill3()
 {
+	FVector Location = GetPawn()->GetActorLocation();
+	Location.Z = 0;
+
+	SimpleMoveToLocation(this, Location);
+	this->MoveToLocation(Location);
+
+	GetPawn()->SetActorRotation((GetMouseHitLocation() - Location).Rotation());
+
 	UE_LOG(LogTemp, Warning, TEXT("Skill3"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
 	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill3);
@@ -254,9 +281,17 @@ void ADefaultPlayerController::Skill3()
 
 void ADefaultPlayerController::Skill4()
 {
+	FVector Location = GetPawn()->GetActorLocation();
+	Location.Z = 0;
+
+	SimpleMoveToLocation(this, Location);
+	this->MoveToLocation(Location);
+
+	GetPawn()->SetActorRotation((GetMouseHitLocation() - Location).Rotation());
+
 	UE_LOG(LogTemp, Warning, TEXT("Skill4"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
-	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4);
+	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Started);
 }
 
 void ADefaultPlayerController::RuneSpell1()
@@ -315,6 +350,15 @@ void ADefaultPlayerController::MoveStarted()
 
 void ADefaultPlayerController::Move()
 {
+	FVector Destination = GetMouseHitLocation();
+
+	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
+	SimpleMoveToLocation(this, Destination);
+	this->MoveToLocation(Destination);
+}
+
+FVector ADefaultPlayerController::GetMouseHitLocation()
+{
 	FHitResult HitResult;
 	GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, HitResult);
 	HitResult.Location.Z = 0;
@@ -325,6 +369,7 @@ void ADefaultPlayerController::Move()
 	ActorLocation.Z = 0;
 
 	float CapsuleRadius = GetPawn<ACharacter>()->GetCapsuleComponent()->GetScaledCapsuleRadius();
+
 	FVector Destination = (HitResult.Location - ActorLocation).GetSafeNormal() * CapsuleRadius + HitResult.Location;
 
 	DrawDebugLine(GetWorld(), ActorLocation, HitResult.Location, FColor::Blue, false, 1, 0, 1);
@@ -348,9 +393,7 @@ void ADefaultPlayerController::Move()
 		}
 	}
 
-	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
-	SimpleMoveToLocation(this, Destination);
-	this->MoveToLocation(Destination);
+	return Destination;
 }
 
 void ADefaultPlayerController::SimpleMoveToLocation(AController* Controller, const FVector& GoalLocation)

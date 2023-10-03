@@ -47,8 +47,6 @@ public:
 	UFUNCTION(Server, Reliable)
 	void MoveToLocation(FVector Location);
 
-	FVector GetMouseHitLocation();
-
 	UFUNCTION(BlueprintCallable, Category = "AI|Navigation")
 	void SimpleMoveToLocation(AController* Controller, const FVector& Goal);
 

@@ -221,13 +221,13 @@ void ADefaultPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(Skill2Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill2);
 		EnhancedInputComponent->BindAction(Skill3Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill3);
 		EnhancedInputComponent->BindAction(Skill4Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill4);
+		EnhancedInputComponent->BindAction(Skill4Action.Get(), ETriggerEvent::Completed, this, &ADefaultPlayerController::Skill4);
 		EnhancedInputComponent->BindAction(RuneSpell1Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::RuneSpell1);
 		EnhancedInputComponent->BindAction(RuneSpell2Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::RuneSpell2);
 		EnhancedInputComponent->BindAction(WardAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Ward);
 		EnhancedInputComponent->BindAction(BombAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Bomb);
 		EnhancedInputComponent->BindAction(ObjectSelectAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::ObjectSelect);
-		EnhancedInputComponent->BindAction(MoveAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::MoveTriggered);
-		EnhancedInputComponent->BindAction(MoveAction.Get(), ETriggerEvent::Started, this, &ADefaultPlayerController::MoveStarted);
+		EnhancedInputComponent->BindAction(MoveAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Move);
 	}
 }
 
@@ -236,13 +236,7 @@ void ADefaultPlayerController::Skill1()
 	//if (!(GetPlayerState<ADefaultPlayerState>()->Stats.Mana >= 100))
 	//	return;
 
-	FVector Location = GetPawn()->GetActorLocation();
-	Location.Z = 0;
-
-	SimpleMoveToLocation(this, Location);
-	this->MoveToLocation(Location);
-
-	GetPawn()->SetActorRotation((GetMouseHitLocation() - Location).Rotation());
+	Server_SetRotation(GetMouseHitLocation());
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill1"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
@@ -251,13 +245,7 @@ void ADefaultPlayerController::Skill1()
 
 void ADefaultPlayerController::Skill2()
 {
-	FVector Location = GetPawn()->GetActorLocation();
-	Location.Z = 0;
-
-	SimpleMoveToLocation(this, Location);
-	this->MoveToLocation(Location);
-
-	GetPawn()->SetActorRotation((GetMouseHitLocation() - Location).Rotation());
+	Server_SetRotation(GetMouseHitLocation());
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill2"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
@@ -266,30 +254,18 @@ void ADefaultPlayerController::Skill2()
 
 void ADefaultPlayerController::Skill3()
 {
-	FVector Location = GetPawn()->GetActorLocation();
-	Location.Z = 0;
-
-	SimpleMoveToLocation(this, Location);
-	this->MoveToLocation(Location);
-
-	GetPawn()->SetActorRotation((GetMouseHitLocation() - Location).Rotation());
+	Server_SetRotation(GetMouseHitLocation());
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill3"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
 	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill3);
 }
 
-void ADefaultPlayerController::Skill4()
+void ADefaultPlayerController::Skill4(const FInputActionValue& Value)
 {
-	FVector Location = GetPawn()->GetActorLocation();
-	Location.Z = 0;
+	Server_SetRotation(GetMouseHitLocation());
 
-	SimpleMoveToLocation(this, Location);
-	this->MoveToLocation(Location);
-
-	GetPawn()->SetActorRotation((GetMouseHitLocation() - Location).Rotation());
-
-	UE_LOG(LogTemp, Warning, TEXT("Skill4"));
+	UE_LOG(LogTemp, Warning, TEXT("Skill4 %x"), Value);
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
 	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Started);
 }
@@ -338,16 +314,6 @@ void ADefaultPlayerController::ObjectSelect()
 	}
 }
 
-void ADefaultPlayerController::MoveTriggered()
-{
-	Move();
-}
-
-void ADefaultPlayerController::MoveStarted()
-{
-	Move();
-}
-
 void ADefaultPlayerController::Move()
 {
 	FVector Destination = GetMouseHitLocation();
@@ -357,13 +323,29 @@ void ADefaultPlayerController::Move()
 	this->MoveToLocation(Destination);
 }
 
+void ADefaultPlayerController::Multicast_SetRotation_Implementation(FVector MouseHitLocation)
+{
+	FVector Location = GetPawn()->GetActorLocation();
+	Location.Z = 0;
+
+	SimpleMoveToLocation(this, Location);
+	this->MoveToLocation(Location);
+
+	GetPawn()->SetActorRotation((MouseHitLocation - Location).Rotation());
+}
+
+void ADefaultPlayerController::Server_SetRotation_Implementation(FVector MouseHitLocation)
+{
+	Multicast_SetRotation(MouseHitLocation);
+}
+
 FVector ADefaultPlayerController::GetMouseHitLocation()
 {
 	FHitResult HitResult;
 	GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, HitResult);
 	HitResult.Location.Z = 0;
 
-	UE_LOG(LogTemp, Warning, TEXT("Client%d MoveTo : (%f, %f)"), GPlayInEditorID, HitResult.Location.X, HitResult.Location.Y);
+	//UE_LOG(LogTemp, Warning, TEXT("Client%d MoveTo : (%f, %f)"), GPlayInEditorID, HitResult.Location.X, HitResult.Location.Y);
 
 	FVector ActorLocation = GetPawn()->GetActorLocation();
 	ActorLocation.Z = 0;

@@ -6,6 +6,7 @@ ADefaultPlayerState::ADefaultPlayerState()
 	CharacterBPRef = nullptr;;
 	Team = TeamType::Null;
 	State = ECharacterState::Idle;
+	InitPlayerStats();
 }
 
 void ADefaultPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -30,42 +31,42 @@ void ADefaultPlayerState::InitPlayerStats()
 {
 	ADefaultPlayerCharacter* Initializer = Cast<ADefaultPlayerCharacter>(CharacterBPRef);
 
-	Stats.Health									= Initializer->GetHealth();
-	Stats.HPRegeneration							= Initializer->GetHPRegeneration();
-	Stats.HealAndShieldpower						= Initializer->GetHealAndShieldpower();
-	Stats.Armor										= Initializer->GetArmor();
-	Stats.MagicResistance							= Initializer->GetMagicResistance();
-	Stats.Tenacity									= Initializer->GetTenacity();
-	Stats.SlowRisist								= Initializer->GetSlowRisist();
-	Stats.AttackSpeed								= Initializer->GetAttackSpeed();
-	Stats.AttackDamage								= Initializer->GetAttackDamage();
-	Stats.AbilityPower								= Initializer->GetAbilityPower();
-	Stats.CriticalStrikeChance						= Initializer->GetCriticalStrikeChance();
-	Stats.CriticalStrikeDamage						= Initializer->GetCriticalStrikeDamage();
-	Stats.ArmorPenetration							= Initializer->GetArmorPenetration();
-	Stats.MagicPenetration							= Initializer->GetMagicPenetration();
-	Stats.LifeSteal									= Initializer->GetLifeSteal();
-	Stats.PhysicalVamp								= Initializer->GetPhysicalVamp();
-	Stats.Omnivamp									= Initializer->GetOmnivamp();
-	Stats.AbilityHaste								= Initializer->GetAbilityHaste();
+	Stats.Health									= Initializer->Health;
+	Stats.HPRegeneration							= Initializer->HPRegeneration;
+	Stats.HealAndShieldpower						= Initializer->HealAndShieldpower;
+	Stats.Armor										= Initializer->Armor;
+	Stats.MagicResistance							= Initializer->MagicResistance;
+	Stats.Tenacity									= Initializer->Tenacity;
+	Stats.SlowRisist								= Initializer->SlowRisist;
+	Stats.AttackSpeed								= Initializer->AttackSpeed;
+	Stats.AttackDamage								= Initializer->AttackDamage;
+	Stats.AbilityPower								= Initializer->AbilityPower;
+	Stats.CriticalStrikeChance						= Initializer->CriticalStrikeChance;
+	Stats.CriticalStrikeDamage						= Initializer->CriticalStrikeDamage;
+	Stats.ArmorPenetration							= Initializer->ArmorPenetration;
+	Stats.MagicPenetration							= Initializer->MagicPenetration;
+	Stats.LifeSteal									= Initializer->LifeSteal;
+	Stats.PhysicalVamp								= Initializer->PhysicalVamp;
+	Stats.Omnivamp									= Initializer->Omnivamp;
+	Stats.AbilityHaste								= Initializer->AbilityHaste;
 
-	SetMultipleCooldownDuration(Initializer->GetCooldownDuration());
+	SetMultipleCooldownDuration(Initializer->CooldownDuration);
 
-	Stats.Mana										= Initializer->GetMana();
-	Stats.ManaRegeneration							= Initializer->GetManaRegeneration();
-	Stats.Energy									= Initializer->GetEnergy();
-	Stats.EnergyRegeneration						= Initializer->GetEnergyRegeneration();
-	Stats.AttackRange								= Initializer->GetAttackRange();
-	Stats.MovementSpeed								= Initializer->GetMovementSpeed();
-	Stats.GoldGeneration							= Initializer->GetGoldGeneration();
-	Stats.AttackDamageGrowth						= Initializer->GetAttackDamageGrowth();
-	Stats.AttackSpeedGrowth							= Initializer->GetAttackSpeedGrowth();
-	Stats.ArmorGrowth								= Initializer->GetArmorGrowth();
-	Stats.MagicResistanceGrowth						= Initializer->GetMagicResistanceGrowth();
-	Stats.HealthGrowth								= Initializer->GetHealthGrowth();
-	Stats.HealthRegenerationGrowth					= Initializer->GetHealthRegenerationGrowth();
-	Stats.ManaGrowth								= Initializer->GetManaGrowth();
-	Stats.ManaRegenerationGrowth					= Initializer->GetManaRegenerationGrowth();
+	Stats.Mana										= Initializer->Mana;
+	Stats.ManaRegeneration							= Initializer->ManaRegeneration;
+	Stats.Energy									= Initializer->Energy;
+	Stats.EnergyRegeneration						= Initializer->EnergyRegeneration;
+	Stats.AttackRange								= Initializer->AttackRange;
+	Stats.MovementSpeed								= Initializer->MovementSpeed;
+	Stats.GoldGeneration							= Initializer->GoldGeneration;
+	Stats.AttackDamageGrowth						= Initializer->AttackDamageGrowth;
+	Stats.AttackSpeedGrowth							= Initializer->AttackSpeedGrowth;
+	Stats.ArmorGrowth								= Initializer->ArmorGrowth;
+	Stats.MagicResistanceGrowth						= Initializer->MagicResistanceGrowth;
+	Stats.HealthGrowth								= Initializer->HealthGrowth;
+	Stats.HealthRegenerationGrowth					= Initializer->HealthRegenerationGrowth;
+	Stats.ManaGrowth								= Initializer->ManaGrowth;
+	Stats.ManaRegenerationGrowth					= Initializer->ManaRegenerationGrowth;
 }
 
 void ADefaultPlayerState::NetMulticast_SetAttackType_Implementation(CooldownType Value)

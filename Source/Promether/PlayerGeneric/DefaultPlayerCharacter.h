@@ -89,47 +89,6 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void NetMulticast_Skill7();
 
-	float			GetHealth()											const { return Health; }
-	float			GetHPRegeneration()									const { return HPRegeneration; }
-	float			GetHealAndShieldpower()								const { return HealAndShieldpower; }
-	float			GetArmor()											const { return Armor; }
-	float			GetMagicResistance()								const { return MagicResistance; }
-	float			GetTenacity()										const { return Tenacity; }
-	float			GetSlowRisist()										const { return SlowRisist; }
-	float			GetAttackSpeed()									const { return AttackSpeed; }
-	float			GetAttackDamage()									const { return AttackDamage; }
-	float			GetAbilityPower()									const { return AbilityPower; }
-	float			GetCriticalStrikeChance()							const { return CriticalStrikeChance; }
-	float			GetCriticalStrikeDamage()							const { return CriticalStrikeDamage; }
-	float			GetArmorPenetration()								const { return ArmorPenetration; }
-	float			GetMagicPenetration()								const { return MagicPenetration; }
-	float			GetLifeSteal()										const { return LifeSteal; }
-	float			GetPhysicalVamp()									const { return PhysicalVamp; }
-	float			GetOmnivamp()										const { return Omnivamp; }
-	float			GetAbilityHaste()									const { return AbilityHaste; }
-	const float*	GetCooldownDuration()								const { return CooldownDuration; }
-	float			GetMana()											const { return Mana; }
-	float			GetManaRegeneration()								const { return ManaRegeneration; }
-	float			GetEnergy()											const { return Energy; }
-	float			GetEnergyRegeneration()								const { return EnergyRegeneration; }
-	float			GetAttackRange()									const { return AttackRange; }
-	float			GetMovementSpeed()									const { return MovementSpeed; }
-	float			GetGoldGeneration()									const { return GoldGeneration; }
-	float			GetAttackDamageGrowth()								const { return AttackDamageGrowth; }
-	float			GetAttackSpeedGrowth()								const { return AttackSpeedGrowth; }
-	float			GetArmorGrowth()									const { return ArmorGrowth; }
-	float			GetMagicResistanceGrowth()							const { return MagicResistanceGrowth; }
-	float			GetHealthGrowth()									const { return HealthGrowth; }
-	float			GetHealthRegenerationGrowth()						const { return HealthRegenerationGrowth; }
-	float			GetManaGrowth()										const { return ManaGrowth; }
-	float			GetManaRegenerationGrowth()							const { return ManaRegenerationGrowth; }
-
-protected:
-	UPROPERTY(EditAnywhere)
-	USpringArmComponent* CameraSpringArm;
-	UPROPERTY(EditAnywhere)
-	UCameraComponent* Camera;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Defensive")
 	float Health;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Defensive")
@@ -206,4 +165,10 @@ protected:
 	float ManaGrowth;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Increasing Statistics")
 	float ManaRegenerationGrowth;
+
+protected:
+	UPROPERTY(EditAnywhere)
+	USpringArmComponent* CameraSpringArm;
+	UPROPERTY(EditAnywhere)
+	UCameraComponent* Camera;
 };

@@ -6,7 +6,6 @@ ADefaultPlayerState::ADefaultPlayerState()
 	CharacterBPRef = nullptr;;
 	Team = TeamType::Null;
 	State = ECharacterState::Idle;
-	InitPlayerStats();
 }
 
 void ADefaultPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

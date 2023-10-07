@@ -220,8 +220,8 @@ void ADefaultPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(Skill1Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill1);
 		EnhancedInputComponent->BindAction(Skill2Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill2);
 		EnhancedInputComponent->BindAction(Skill3Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill3);
-		EnhancedInputComponent->BindAction(Skill4Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill4);
-		EnhancedInputComponent->BindAction(Skill4Action.Get(), ETriggerEvent::Completed, this, &ADefaultPlayerController::Skill4);
+		EnhancedInputComponent->BindAction(Skill4Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill4Triggered);
+		EnhancedInputComponent->BindAction(Skill4Action.Get(), ETriggerEvent::Completed, this, &ADefaultPlayerController::Skill4Completed);
 		EnhancedInputComponent->BindAction(RuneSpell1Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::RuneSpell1);
 		EnhancedInputComponent->BindAction(RuneSpell2Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::RuneSpell2);
 		EnhancedInputComponent->BindAction(WardAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Ward);
@@ -261,13 +261,22 @@ void ADefaultPlayerController::Skill3()
 	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill3);
 }
 
-void ADefaultPlayerController::Skill4(const FInputActionValue& Value)
+void ADefaultPlayerController::Skill4Triggered()
 {
 	Server_SetRotation(GetMouseHitLocation());
 
-	UE_LOG(LogTemp, Warning, TEXT("Skill4 %x"), Value);
+	UE_LOG(LogTemp, Warning, TEXT("Skill4 Triggered"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
-	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Started);
+	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Triggered);
+}
+
+void ADefaultPlayerController::Skill4Completed()
+{
+	Server_SetRotation(GetMouseHitLocation());
+
+	UE_LOG(LogTemp, Warning, TEXT("Skill4 Completed"));
+	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
+	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Comlpleted);
 }
 
 void ADefaultPlayerController::RuneSpell1()

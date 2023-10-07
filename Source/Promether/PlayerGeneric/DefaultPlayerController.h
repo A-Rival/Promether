@@ -34,7 +34,8 @@ public:
 	void Skill1();
 	void Skill2();
 	void Skill3();
-	void Skill4(const FInputActionValue& Value);
+	void Skill4Triggered();
+	void Skill4Completed();
 	void RuneSpell1();
 	void RuneSpell2();
 	void Ward();

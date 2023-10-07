@@ -35,6 +35,7 @@ public:
 	void Skill2();
 	void Skill3();
 	void Skill4();
+	void Skill4_End();
 	void RuneSpell1();
 	void RuneSpell2();
 	void Ward();
@@ -71,6 +72,8 @@ private:
 	TSoftObjectPtr<UInputAction> Skill3Action;
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TSoftObjectPtr<UInputAction> Skill4Action;
+	UPROPERTY(EditAnywhere, Category = "Input")
+		TSoftObjectPtr<UInputAction> Skill4_EndAction;
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TSoftObjectPtr<UInputAction> RuneSpell1Action;
 	UPROPERTY(EditAnywhere, Category = "Input")

@@ -133,6 +133,7 @@ ADefaultPlayerController::ADefaultPlayerController()
 		IA_SKILL2(TEXT("/Script/EnhancedInput.InputAction'/Game/InputActions/Skill2.Skill2'")),
 		IA_SKILL3(TEXT("/Script/EnhancedInput.InputAction'/Game/InputActions/Skill3.Skill3'")),
 		IA_SKILL4(TEXT("/Script/EnhancedInput.InputAction'/Game/InputActions/Skill4.Skill4'")),
+		IA_SKILL4_End(TEXT("/Script/EnhancedInput.InputAction'/Game/InputActions/Skill4_End.Skill4_End'")),
 		IA_RUNESPELL1(TEXT("/Script/EnhancedInput.InputAction'/Game/InputActions/RuneSpell1.RuneSpell1'")),
 		IA_RUNESPELL2(TEXT("/Script/EnhancedInput.InputAction'/Game/InputActions/RuneSpell2.RuneSpell2'")),
 		IA_WARD(TEXT("/Script/EnhancedInput.InputAction'/Game/InputActions/Ward.Ward'")),
@@ -156,6 +157,11 @@ ADefaultPlayerController::ADefaultPlayerController()
 		return;
 	}
 	if (!IA_SKILL4.Succeeded())
+	{
+		UE_LOG(LogTemp, Error, TEXT("IA_ULTIMATESKILL load failed."));
+		return;
+	}
+	if (!IA_SKILL4_End.Succeeded())
 	{
 		UE_LOG(LogTemp, Error, TEXT("IA_ULTIMATESKILL load failed."));
 		return;
@@ -196,6 +202,7 @@ ADefaultPlayerController::ADefaultPlayerController()
 	Skill2Action = IA_SKILL2.Object;
 	Skill3Action = IA_SKILL3.Object;
 	Skill4Action = IA_SKILL4.Object;
+	Skill4_EndAction = IA_SKILL4_End.Object;
 	RuneSpell1Action = IA_RUNESPELL1.Object;
 	RuneSpell2Action = IA_RUNESPELL2.Object;
 	WardAction = IA_WARD.Object;
@@ -221,6 +228,7 @@ void ADefaultPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(Skill2Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill2);
 		EnhancedInputComponent->BindAction(Skill3Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill3);
 		EnhancedInputComponent->BindAction(Skill4Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill4);
+		EnhancedInputComponent->BindAction(Skill4_EndAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill4_End);
 		EnhancedInputComponent->BindAction(RuneSpell1Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::RuneSpell1);
 		EnhancedInputComponent->BindAction(RuneSpell2Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::RuneSpell2);
 		EnhancedInputComponent->BindAction(WardAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Ward);
@@ -292,6 +300,21 @@ void ADefaultPlayerController::Skill4()
 	UE_LOG(LogTemp, Warning, TEXT("Skill4"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
 	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Started);
+}
+
+void ADefaultPlayerController::Skill4_End()
+{
+	FVector Location = GetPawn()->GetActorLocation();
+	Location.Z = 0;
+
+	SimpleMoveToLocation(this, Location);
+	this->MoveToLocation(Location);
+
+	GetPawn()->SetActorRotation((GetMouseHitLocation() - Location).Rotation());
+
+	UE_LOG(LogTemp, Warning, TEXT("Skill4_End"));
+	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
+	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Comlpleted);
 }
 
 void ADefaultPlayerController::RuneSpell1()

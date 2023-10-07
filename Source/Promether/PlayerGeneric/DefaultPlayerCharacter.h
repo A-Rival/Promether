@@ -66,6 +66,14 @@ public:
 	void NetMulticast_Skill4();
 
 	UFUNCTION(BlueprintCallable, Server, Reliable)
+		void Skill4_End();
+	//Override me
+	UFUNCTION(BlueprintImplementableEvent)
+		void BP_Skill4_End();
+	UFUNCTION(NetMulticast, Reliable)
+		void NetMulticast_Skill4_End();
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Skill5();
 	//Override me
 	UFUNCTION(BlueprintImplementableEvent)

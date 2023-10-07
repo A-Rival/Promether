@@ -186,6 +186,16 @@ void ADefaultPlayerCharacter::NetMulticast_Skill4_Implementation()
 	BP_Skill4();
 }
 
+void ADefaultPlayerCharacter::Skill4_End_Implementation()
+{
+	NetMulticast_Skill4_End();
+}
+
+void ADefaultPlayerCharacter::NetMulticast_Skill4_End_Implementation()
+{
+	BP_Skill4_End();
+}
+
 void ADefaultPlayerCharacter::Skill5_Implementation()
 {
 	NetMulticast_Skill5();

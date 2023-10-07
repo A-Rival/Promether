@@ -31,6 +31,13 @@ void ADefaultPlayerState::InitPlayerStats_Implementation(const TArray<float>& St
 	MaxStats.Append(StatsValue);
 	Stats.Append(StatsValue);
 	CooldownDuration.Append(CooldownDurationValue);
+	MaxCooldownDuration.Append(CooldownDurationValue);
+
+
+	for (float Value : StatsValue)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Values: %f"), Value);
+	}
 }
 
 void ADefaultPlayerState::NetMulticast_SetAttackType_Implementation(CooldownType Value)

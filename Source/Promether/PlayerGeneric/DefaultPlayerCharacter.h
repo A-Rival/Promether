@@ -90,7 +90,7 @@ public:
 	void NetMulticast_Skill7();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	TMap<FName, float> DefaultStats;
+	TMap<EStats, float> DefaultStats;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 	TMap<CooldownType, float> CooldownDuration;

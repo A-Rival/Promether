@@ -24,16 +24,9 @@ ADefaultPlayerCharacter::ADefaultPlayerCharacter()
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraSpringArm, USpringArmComponent::SocketName);
-
-	const UEnum* CharStateEnum = FindObject<UEnum>(ANY_PACKAGE, TEXT("EStats"), true);
-	if (!CharStateEnum)
-	{
-		UE_LOG(LogTemp, Error, TEXT("EStats Missing"));
-		return;
-	}
-
+	
 	for (uint8 i = 0; i < (uint8)EStats::SIZE; i++)
-		DefaultStats.Add(*CharStateEnum->GetNameByValue((uint8)i).ToString(), 0.0f);
+		DefaultStats.Add((EStats)i, 0.0f);
 
 	for (uint8 i = 0; i < (uint8)CooldownType::SIZE; i++)
 		CooldownDuration.Add((CooldownType)i, 0.0f);

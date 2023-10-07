@@ -20,12 +20,10 @@ void ADefaultPlayerController::BeginPlay()
 
 	ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
 	if (!LocalPlayer) return;
+
 	UEnhancedInputLocalPlayerSubsystem* InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
 	if (!InputSystem) return;
-	ADefaultPlayerCharacter* ControlledPawn = GetPawn<ADefaultPlayerCharacter>();
-	if (!ControlledPawn) return;
-	ADefaultPlayerState* MyPlayerState = GetPlayerState<ADefaultPlayerState>();
-	if (!MyPlayerState) return;
+
 	if (PlayerInputMapping.IsNull())
 	{
 		UE_LOG(LogTemp, Error, TEXT("AddMappingContext Failed"));
@@ -34,7 +32,6 @@ void ADefaultPlayerController::BeginPlay()
 
 	InputSystem->AddMappingContext(PlayerInputMapping.LoadSynchronous(), 0);
 	this->bShowMouseCursor = true;
-	//MyPlayerState->InitPlayerStats(ControlledPawn->DefaultStats, ControlledPawn->CooldownDuration);
 }
 
 void ADefaultPlayerController::OnPossess(APawn* aPawn)
@@ -53,6 +50,20 @@ void ADefaultPlayerController::OnPossess(APawn* aPawn)
 	SetViewTarget(PlayerCamera);
 
 	UE_LOG(LogTemp, Warning, TEXT("SetViewTarget Success : %s"), *GetPlayerState<ADefaultPlayerState>()->GetPlayerCamera()->GetName());
+
+	ADefaultPlayerCharacter* ControlledPawn = GetPawn<ADefaultPlayerCharacter>();
+	if (!ControlledPawn) return;
+
+	ADefaultPlayerState* MyPlayerState = GetPlayerState<ADefaultPlayerState>();
+	if (!MyPlayerState) return;
+
+	TArray<float> DefaultStatsValue;
+	TArray<float> CooldownDurationValue;
+
+	ControlledPawn->DefaultStats.GenerateValueArray(DefaultStatsValue);
+	ControlledPawn->CooldownDuration.GenerateValueArray(CooldownDurationValue);
+
+	MyPlayerState->InitPlayerStats(DefaultStatsValue, CooldownDurationValue);
 }
 
 void ADefaultPlayerController::OnUnPossess()

@@ -26,46 +26,11 @@ void ADefaultPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(ADefaultPlayerState, PlayerCamera);
 }
 
-void ADefaultPlayerState::InitPlayerStats()
+void ADefaultPlayerState::InitPlayerStats_Implementation(const TArray<float>& StatsValue, const TArray<float>& CooldownDurationValue)
 {
-	ADefaultPlayerCharacter* Initializer = Cast<ADefaultPlayerCharacter>(CharacterBPRef);
-
-	Stats.Health									= Initializer->Health;
-	Stats.HPRegeneration							= Initializer->HPRegeneration;
-	Stats.HealAndShieldpower						= Initializer->HealAndShieldpower;
-	Stats.Armor										= Initializer->Armor;
-	Stats.MagicResistance							= Initializer->MagicResistance;
-	Stats.Tenacity									= Initializer->Tenacity;
-	Stats.SlowRisist								= Initializer->SlowRisist;
-	Stats.AttackSpeed								= Initializer->AttackSpeed;
-	Stats.AttackDamage								= Initializer->AttackDamage;
-	Stats.AbilityPower								= Initializer->AbilityPower;
-	Stats.CriticalStrikeChance						= Initializer->CriticalStrikeChance;
-	Stats.CriticalStrikeDamage						= Initializer->CriticalStrikeDamage;
-	Stats.ArmorPenetration							= Initializer->ArmorPenetration;
-	Stats.MagicPenetration							= Initializer->MagicPenetration;
-	Stats.LifeSteal									= Initializer->LifeSteal;
-	Stats.PhysicalVamp								= Initializer->PhysicalVamp;
-	Stats.Omnivamp									= Initializer->Omnivamp;
-	Stats.AbilityHaste								= Initializer->AbilityHaste;
-
-	SetMultipleCooldownDuration(Initializer->CooldownDuration);
-
-	Stats.Mana										= Initializer->Mana;
-	Stats.ManaRegeneration							= Initializer->ManaRegeneration;
-	Stats.Energy									= Initializer->Energy;
-	Stats.EnergyRegeneration						= Initializer->EnergyRegeneration;
-	Stats.AttackRange								= Initializer->AttackRange;
-	Stats.MovementSpeed								= Initializer->MovementSpeed;
-	Stats.GoldGeneration							= Initializer->GoldGeneration;
-	Stats.AttackDamageGrowth						= Initializer->AttackDamageGrowth;
-	Stats.AttackSpeedGrowth							= Initializer->AttackSpeedGrowth;
-	Stats.ArmorGrowth								= Initializer->ArmorGrowth;
-	Stats.MagicResistanceGrowth						= Initializer->MagicResistanceGrowth;
-	Stats.HealthGrowth								= Initializer->HealthGrowth;
-	Stats.HealthRegenerationGrowth					= Initializer->HealthRegenerationGrowth;
-	Stats.ManaGrowth								= Initializer->ManaGrowth;
-	Stats.ManaRegenerationGrowth					= Initializer->ManaRegenerationGrowth;
+	MaxStats.Append(StatsValue);
+	Stats.Append(StatsValue);
+	CooldownDuration.Append(CooldownDurationValue);
 }
 
 void ADefaultPlayerState::NetMulticast_SetAttackType_Implementation(CooldownType Value)
@@ -91,9 +56,4 @@ void ADefaultPlayerState::SetAttackType_Implementation(CooldownType Value)
 int32 ADefaultPlayerState::GetCharacterLevel() const
 {
 	return int32();
-}
-
-void ADefaultPlayerState::SetMultipleCooldownDuration(const float* Value)
-{
-	std::memcpy(&CooldownDuration, Value, sizeof(float) * (uint8)CooldownType::SIZE);
 }

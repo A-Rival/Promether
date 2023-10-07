@@ -89,83 +89,11 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void NetMulticast_Skill7();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Defensive")
-	float Health;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Defensive")
-	float HPRegeneration;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Defensive")
-	float HealAndShieldpower;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Defensive")
-	float Armor;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Defensive")
-	float MagicResistance;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Defensive")
-	float Tenacity;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Defensive")
-	float SlowRisist;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	TMap<FName, float> DefaultStats;
 
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Offensive")
-	float AttackSpeed;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Offensive")
-	float AttackDamage;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Offensive")
-	float AbilityPower;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Offensive")
-	float CriticalStrikeChance;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Offensive")
-	float CriticalStrikeDamage;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Offensive")
-	float ArmorPenetration;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Offensive")
-	float MagicPenetration;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Offensive")
-	float LifeSteal;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Offensive")
-	float PhysicalVamp;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Offensive")
-	float Omnivamp;
-
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Utility|Haste")
-	float AbilityHaste;
-
-	UPROPERTY(EditAnywhere, Category = "Stats|Utility|Haste")
-	float CooldownDuration[(uint8)CooldownType::SIZE] = { 0.0f, };
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Utility|Resource")
-	float Mana;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Utility|Resource")
-	float ManaRegeneration;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Utility|Resource")
-	float Energy;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Utility|Resource")
-	float EnergyRegeneration;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Utility")
-	float AttackRange;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Utility")
-	float MovementSpeed;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Utility|Non-Combat")
-	float GoldGeneration;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Increasing Statistics")
-	float AttackDamageGrowth;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Increasing Statistics")
-	float AttackSpeedGrowth;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Increasing Statistics")
-	float ArmorGrowth;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Increasing Statistics")
-	float MagicResistanceGrowth;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Increasing Statistics")
-	float HealthGrowth;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Increasing Statistics")
-	float HealthRegenerationGrowth;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Increasing Statistics")
-	float ManaGrowth;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Increasing Statistics")
-	float ManaRegenerationGrowth;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	TMap<CooldownType, float> CooldownDuration;
 protected:
 	UPROPERTY(EditAnywhere)
 	USpringArmComponent* CameraSpringArm;

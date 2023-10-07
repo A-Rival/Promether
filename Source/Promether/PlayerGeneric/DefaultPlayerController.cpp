@@ -18,18 +18,23 @@ void ADefaultPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player)) {
-		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>()) {
-			if (!PlayerInputMapping.IsNull()) {
-				InputSystem->AddMappingContext(PlayerInputMapping.LoadSynchronous(), 0);
-			}
-			else {
-				UE_LOG(LogTemp, Error, TEXT("AddMappingContext Failed"));
-			}
-		}
+	ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
+	if (!LocalPlayer) return;
+	UEnhancedInputLocalPlayerSubsystem* InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+	if (!InputSystem) return;
+	ADefaultPlayerCharacter* ControlledPawn = GetPawn<ADefaultPlayerCharacter>();
+	if (!ControlledPawn) return;
+	ADefaultPlayerState* MyPlayerState = GetPlayerState<ADefaultPlayerState>();
+	if (!MyPlayerState) return;
+	if (PlayerInputMapping.IsNull())
+	{
+		UE_LOG(LogTemp, Error, TEXT("AddMappingContext Failed"));
+		return;
 	}
 
+	InputSystem->AddMappingContext(PlayerInputMapping.LoadSynchronous(), 0);
 	this->bShowMouseCursor = true;
+	//MyPlayerState->InitPlayerStats(ControlledPawn->DefaultStats, ControlledPawn->CooldownDuration);
 }
 
 void ADefaultPlayerController::OnPossess(APawn* aPawn)
@@ -39,16 +44,15 @@ void ADefaultPlayerController::OnPossess(APawn* aPawn)
 	Server_SpawnPlayerCamera();
 
 	AActor *PlayerCamera = GetPlayerState<ADefaultPlayerState>()->GetPlayerCamera();
-	if (PlayerCamera)
-	{
-		SetViewTarget(PlayerCamera);
-
-		UE_LOG(LogTemp, Warning, TEXT("SetViewTarget Success : %s"), *GetPlayerState<ADefaultPlayerState>()->GetPlayerCamera()->GetName());
-	}
-	else
+	if (!PlayerCamera) 
 	{
 		UE_LOG(LogTemp, Error, TEXT("GetPlayerCamera Failed."));
+		return;
 	}
+
+	SetViewTarget(PlayerCamera);
+
+	UE_LOG(LogTemp, Warning, TEXT("SetViewTarget Success : %s"), *GetPlayerState<ADefaultPlayerState>()->GetPlayerCamera()->GetName());
 }
 
 void ADefaultPlayerController::OnUnPossess()
@@ -66,48 +70,46 @@ void ADefaultPlayerController::Server_SpawnPlayerCamera_Implementation()
 
 	UE_LOG(LogTemp, Warning, TEXT("SpawnPlayerCamera"));
 
-	if (APawn* MyPawn = GetPawn())
+	APawn* MyPawn = GetPawn();
+	if (!MyPawn) return;
+
+	FTransform SpawnTransform = FTransform();
+
+	SpawnTransform.SetLocation(MyPawn->GetActorLocation());
+
+	OutContextPlayerCamera = GetWorld()->SpawnActor<AActor>(ADefaultPlayerCamera::StaticClass(), SpawnTransform, SpawnInfo);
+	if (!OutContextPlayerCamera)
 	{
-		FTransform SpawnTransform = FTransform();
-
-		SpawnTransform.SetLocation(MyPawn->GetActorLocation());
-
-		OutContextPlayerCamera = GetWorld()->SpawnActor<AActor>(ADefaultPlayerCamera::StaticClass(), SpawnTransform, SpawnInfo);
-		if (OutContextPlayerCamera)
-		{
-			GetPlayerState<ADefaultPlayerState>()->SetPlayerCamera(OutContextPlayerCamera);
-			OutContextPlayerCamera->AttachToActor(GetPawn(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
-
-			UE_LOG(LogTemp, Warning, TEXT("SetPlayerCamera Success : %s, %d"), *GetPlayerState<ADefaultPlayerState>()->GetPlayerCamera()->GetName(), GetPlayerState<ADefaultPlayerState>()->GetPlayerCamera());
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("Camera Spawn Failed."));
-		}
+		UE_LOG(LogTemp, Error, TEXT("Camera Spawn Failed."));
+		return;
 	}
+	
+	GetPlayerState<ADefaultPlayerState>()->SetPlayerCamera(OutContextPlayerCamera);
+	OutContextPlayerCamera->AttachToActor(GetPawn(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
+
+	UE_LOG(LogTemp, Warning, TEXT("SetPlayerCamera Success : %s, %d"), *GetPlayerState<ADefaultPlayerState>()->GetPlayerCamera()->GetName(), GetPlayerState<ADefaultPlayerState>()->GetPlayerCamera());
 }
 
 void ADefaultPlayerController::SetACharacterOutlineColor(ACharacter* Target, bool Visible)
 {
-	if (!HasAuthority())
+	if (HasAuthority()) return;
+
+	ADefaultPlayerState* State = Target->GetPlayerState<ADefaultPlayerState>();
+	if (!State)
 	{
-		if (ADefaultPlayerState* State = Target->GetPlayerState<ADefaultPlayerState>())
-		{
-			if (State->GetTeam() == GetPlayerState<ADefaultPlayerState>()->GetTeam())
-			{
-				Target->GetMesh()->SetRenderCustomDepth(Visible);
-				Target->GetMesh()->CustomDepthStencilValue = 1;
-			}
-			else
-			{
-				Target->GetMesh()->SetRenderCustomDepth(Visible);
-				Target->GetMesh()->CustomDepthStencilValue = 2;
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("GetPlayerState<ADefaultPlayerState> Failed"));
-		}
+		UE_LOG(LogTemp, Error, TEXT("GetPlayerState<ADefaultPlayerState> Failed"));
+		return;
+	}
+
+	if (State->GetTeam() == GetPlayerState<ADefaultPlayerState>()->GetTeam())
+	{
+		Target->GetMesh()->SetRenderCustomDepth(Visible);
+		Target->GetMesh()->CustomDepthStencilValue = 1;
+	}
+	else
+	{
+		Target->GetMesh()->SetRenderCustomDepth(Visible);
+		Target->GetMesh()->CustomDepthStencilValue = 2;
 	}
 }
 
@@ -215,26 +217,32 @@ void ADefaultPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
-	{
-		EnhancedInputComponent->BindAction(Skill1Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill1);
-		EnhancedInputComponent->BindAction(Skill2Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill2);
-		EnhancedInputComponent->BindAction(Skill3Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill3);
-		EnhancedInputComponent->BindAction(Skill4Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill4Triggered);
-		EnhancedInputComponent->BindAction(Skill4Action.Get(), ETriggerEvent::Completed, this, &ADefaultPlayerController::Skill4Completed);
-		EnhancedInputComponent->BindAction(RuneSpell1Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::RuneSpell1);
-		EnhancedInputComponent->BindAction(RuneSpell2Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::RuneSpell2);
-		EnhancedInputComponent->BindAction(WardAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Ward);
-		EnhancedInputComponent->BindAction(BombAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Bomb);
-		EnhancedInputComponent->BindAction(ObjectSelectAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::ObjectSelect);
-		EnhancedInputComponent->BindAction(MoveAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Move);
-	}
+	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
+	if (!EnhancedInputComponent) return;
+
+	EnhancedInputComponent->BindAction(Skill1Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill1);
+	EnhancedInputComponent->BindAction(Skill2Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill2);
+	EnhancedInputComponent->BindAction(Skill3Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill3);
+	EnhancedInputComponent->BindAction(Skill4Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Skill4Triggered);
+	EnhancedInputComponent->BindAction(Skill4Action.Get(), ETriggerEvent::Completed, this, &ADefaultPlayerController::Skill4Completed);
+	EnhancedInputComponent->BindAction(RuneSpell1Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::RuneSpell1);
+	EnhancedInputComponent->BindAction(RuneSpell2Action.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::RuneSpell2);
+	EnhancedInputComponent->BindAction(WardAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Ward);
+	EnhancedInputComponent->BindAction(BombAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Bomb);
+	EnhancedInputComponent->BindAction(ObjectSelectAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::ObjectSelect);
+	EnhancedInputComponent->BindAction(MoveAction.Get(), ETriggerEvent::Triggered, this, &ADefaultPlayerController::Move);
 }
 
 void ADefaultPlayerController::Skill1()
 {
 	//if (!(GetPlayerState<ADefaultPlayerState>()->Stats.Mana >= 100))
 	//	return;
+
+	FVector Location = GetPawn()->GetActorLocation();
+	Location.Z = 0;
+
+	SimpleMoveToLocation(this, Location);
+	this->MoveToLocation(Location);
 
 	Server_SetRotation(GetMouseHitLocation());
 
@@ -245,6 +253,12 @@ void ADefaultPlayerController::Skill1()
 
 void ADefaultPlayerController::Skill2()
 {
+	FVector Location = GetPawn()->GetActorLocation();
+	Location.Z = 0;
+
+	SimpleMoveToLocation(this, Location);
+	this->MoveToLocation(Location);
+
 	Server_SetRotation(GetMouseHitLocation());
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill2"));
@@ -254,6 +268,12 @@ void ADefaultPlayerController::Skill2()
 
 void ADefaultPlayerController::Skill3()
 {
+	FVector Location = GetPawn()->GetActorLocation();
+	Location.Z = 0;
+
+	SimpleMoveToLocation(this, Location);
+	this->MoveToLocation(Location);
+
 	Server_SetRotation(GetMouseHitLocation());
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill3"));
@@ -263,6 +283,12 @@ void ADefaultPlayerController::Skill3()
 
 void ADefaultPlayerController::Skill4Triggered()
 {
+	FVector Location = GetPawn()->GetActorLocation();
+	Location.Z = 0;
+
+	SimpleMoveToLocation(this, Location);
+	this->MoveToLocation(Location);
+
 	Server_SetRotation(GetMouseHitLocation());
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill4 Triggered"));
@@ -272,6 +298,12 @@ void ADefaultPlayerController::Skill4Triggered()
 
 void ADefaultPlayerController::Skill4Completed()
 {
+	FVector Location = GetPawn()->GetActorLocation();
+	Location.Z = 0;
+
+	SimpleMoveToLocation(this, Location);
+	this->MoveToLocation(Location);
+
 	Server_SetRotation(GetMouseHitLocation());
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill4 Completed"));
@@ -316,11 +348,11 @@ void ADefaultPlayerController::ObjectSelect()
 
 	GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult);
 
-	if (ACharacter* HitObject = Cast<ACharacter>(HitResult.GetActor()))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *HitObject->GetName());
-		SetACharacterOutlineColor(HitObject, true);
-	}
+	ACharacter* HitObject = Cast<ACharacter>(HitResult.GetActor());
+	if (!HitObject) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *HitObject->GetName());
+	SetACharacterOutlineColor(HitObject, true);
 }
 
 void ADefaultPlayerController::Move()
@@ -336,9 +368,6 @@ void ADefaultPlayerController::Multicast_SetRotation_Implementation(FVector Mous
 {
 	FVector Location = GetPawn()->GetActorLocation();
 	Location.Z = 0;
-
-	SimpleMoveToLocation(this, Location);
-	this->MoveToLocation(Location);
 
 	GetPawn()->SetActorRotation((MouseHitLocation - Location).Rotation());
 }
@@ -367,22 +396,21 @@ FVector ADefaultPlayerController::GetMouseHitLocation()
 	DrawDebugLine(GetWorld(), HitResult.Location, Destination, FColor::Emerald, false, 1, 0, 1);
 
 	const UWorld* CurrentWorld = GetWorld();
-	if (CurrentWorld)
-	{
-		FHitResult CollisionCheck;
+	if (!CurrentWorld) return Destination;
 
-		FCollisionQueryParams CollisionParams;
-		CollisionParams.AddIgnoredActor(GetPawn());
+	FHitResult CollisionCheck;
 
-		FVector Start = HitResult.Location;
-		FVector End = Destination;
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(GetPawn());
 
-		if (CurrentWorld->LineTraceSingleByChannel(CollisionCheck, Start, End, ECC_Visibility, CollisionParams))
-		{
-			DrawDebugLine(CurrentWorld, Start, End, FColor::Red, false, 1.5, 0, 2);
-			Destination = HitResult.Location;
-		}
-	}
+	FVector Start = HitResult.Location;
+	FVector End = Destination;
+
+	if (!CurrentWorld->LineTraceSingleByChannel(CollisionCheck, Start, End, ECC_Visibility, CollisionParams))
+		return Destination;
+
+	DrawDebugLine(CurrentWorld, Start, End, FColor::Red, false, 1.5, 0, 2);
+	Destination = HitResult.Location;
 
 	return Destination;
 }
@@ -467,18 +495,18 @@ void ADefaultPlayerController::SimpleMoveToLocation(AController* Controller, con
 
 void ADefaultPlayerController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& MovementResult)
 {
-	if (MovementResult.IsSuccess())
+	if (!MovementResult.IsSuccess()) return;
+
+	if (!GPlayInEditorID)
 	{
-		if (!GPlayInEditorID)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Server MoveCompleted"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Client%d MoveCompleted"), GPlayInEditorID);
-		}
-		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
+		UE_LOG(LogTemp, Warning, TEXT("Server MoveCompleted"));
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client%d MoveCompleted"), GPlayInEditorID);
+	}
+
+	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
 }
 
 void ADefaultPlayerController::Attack()

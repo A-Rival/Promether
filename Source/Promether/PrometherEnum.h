@@ -91,3 +91,41 @@ struct FUniqueObjectID
 	int32 RandomUniqueNumber;
 };
 
+UENUM(BlueprintType)
+enum class EStats : uint8
+{
+	Health,
+	HPRegeneration,
+	HealAndShieldpower,
+	Armor,
+	MagicResistance,
+	Tenacity,
+	SlowRisist,
+	AttackSpeed,
+	AttackDamage,
+	AbilityPower,
+	CriticalStrikeChance,
+	CriticalStrikeDamage,
+	ArmorPenetration,
+	MagicPenetration,
+	LifeSteal,
+	PhysicalVamp,
+	Omnivamp,
+	AbilityHaste,
+	Mana,
+	ManaRegeneration,
+	Energy,
+	EnergyRegeneration,
+	AttackRange,
+	MovementSpeed,
+	GoldGeneration,
+	AttackDamageGrowth,
+	AttackSpeedGrowth,
+	ArmorGrowth,
+	MagicResistanceGrowth,
+	HealthGrowth,
+	HealthRegenerationGrowth,
+	ManaGrowth,
+	ManaRegenerationGrowth,
+	SIZE
+};

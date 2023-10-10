@@ -34,19 +34,23 @@ public:
 	void Skill1();
 	void Skill2();
 	void Skill3();
-	void Skill4();
-	void Skill4_End();
+	void Skill4Triggered();
+	void Skill4Completed();
 	void RuneSpell1();
 	void RuneSpell2();
 	void Ward();
 	void Bomb();
 	void ObjectSelect();
-	void MoveTriggered();
-	void MoveStarted();
 	void Move();
 
 	UFUNCTION(Server, Reliable)
 	void MoveToLocation(FVector Location);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SetRotation(FVector MouseHitLocation);
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetRotation(FVector MouseHitLocation);
 
 	FVector GetMouseHitLocation();
 
@@ -72,8 +76,6 @@ private:
 	TSoftObjectPtr<UInputAction> Skill3Action;
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TSoftObjectPtr<UInputAction> Skill4Action;
-	UPROPERTY(EditAnywhere, Category = "Input")
-		TSoftObjectPtr<UInputAction> Skill4_EndAction;
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TSoftObjectPtr<UInputAction> RuneSpell1Action;
 	UPROPERTY(EditAnywhere, Category = "Input")

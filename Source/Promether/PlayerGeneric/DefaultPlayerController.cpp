@@ -246,8 +246,8 @@ void ADefaultPlayerController::SetupInputComponent()
 
 void ADefaultPlayerController::Skill1()
 {
-	//if (!(GetPlayerState<ADefaultPlayerState>()->Stats.Mana >= 100))
-	//	return;
+	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill1Cost]))
+		return;
 
 	FVector Location = GetPawn()->GetActorLocation();
 	Location.Z = 0;
@@ -265,6 +265,9 @@ void ADefaultPlayerController::Skill1()
 
 void ADefaultPlayerController::Skill2()
 {
+	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill2Cost]))
+		return;
+
 	FVector Location = GetPawn()->GetActorLocation();
 	Location.Z = 0;
 
@@ -281,6 +284,9 @@ void ADefaultPlayerController::Skill2()
 
 void ADefaultPlayerController::Skill3()
 {
+	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill3Cost]))
+		return;
+
 	FVector Location = GetPawn()->GetActorLocation();
 	Location.Z = 0;
 
@@ -297,6 +303,9 @@ void ADefaultPlayerController::Skill3()
 
 void ADefaultPlayerController::Skill4Triggered()
 {
+	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]))
+		return;
+
 	FVector Location = GetPawn()->GetActorLocation();
 	Location.Z = 0;
 
@@ -313,15 +322,6 @@ void ADefaultPlayerController::Skill4Triggered()
 
 void ADefaultPlayerController::Skill4Completed()
 {
-	FVector Location = GetPawn()->GetActorLocation();
-	Location.Z = 0;
-
-	Server_StopMove();
-	Multicast_StopMove();
-
-	Multicast_SetRotation(GetMouseHitLocation()); 
-	Server_SetRotation(GetMouseHitLocation());
-
 	UE_LOG(LogTemp, Warning, TEXT("Skill4 Completed"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
 	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Comlpleted);

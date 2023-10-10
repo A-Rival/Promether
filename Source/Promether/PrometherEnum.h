@@ -96,7 +96,7 @@ enum class EStats : uint8
 {
 	Health,
 	HPRegeneration,
-	HealAndShieldpower,
+	HealAndShieldpower, 
 	Armor,
 	MagicResistance,
 	Tenacity,
@@ -127,5 +127,9 @@ enum class EStats : uint8
 	HealthRegenerationGrowth,
 	ManaGrowth,
 	ManaRegenerationGrowth,
+	Skill1Cost,
+	Skill2Cost,
+	Skill3Cost,
+	Skill4Cost,
 	SIZE
 };

@@ -252,9 +252,10 @@ void ADefaultPlayerController::Skill1()
 	FVector Location = GetPawn()->GetActorLocation();
 	Location.Z = 0;
 
-	SimpleMoveToLocation(this, Location);
-	this->MoveToLocation(Location);
+	Server_StopMove();
+	Multicast_StopMove();
 
+	Multicast_SetRotation(GetMouseHitLocation());
 	Server_SetRotation(GetMouseHitLocation());
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill1"));
@@ -267,9 +268,10 @@ void ADefaultPlayerController::Skill2()
 	FVector Location = GetPawn()->GetActorLocation();
 	Location.Z = 0;
 
-	SimpleMoveToLocation(this, Location);
-	this->MoveToLocation(Location);
+	Server_StopMove();
+	Multicast_StopMove();
 
+	Multicast_SetRotation(GetMouseHitLocation());
 	Server_SetRotation(GetMouseHitLocation());
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill2"));
@@ -282,9 +284,10 @@ void ADefaultPlayerController::Skill3()
 	FVector Location = GetPawn()->GetActorLocation();
 	Location.Z = 0;
 
-	SimpleMoveToLocation(this, Location);
-	this->MoveToLocation(Location);
+	Server_StopMove();
+	Multicast_StopMove();
 
+	Multicast_SetRotation(GetMouseHitLocation());
 	Server_SetRotation(GetMouseHitLocation());
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill3"));
@@ -297,9 +300,10 @@ void ADefaultPlayerController::Skill4Triggered()
 	FVector Location = GetPawn()->GetActorLocation();
 	Location.Z = 0;
 
-	SimpleMoveToLocation(this, Location);
-	this->MoveToLocation(Location);
+	Server_StopMove();
+	Multicast_StopMove();
 
+	Multicast_SetRotation(GetMouseHitLocation());
 	Server_SetRotation(GetMouseHitLocation());
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill4 Triggered"));
@@ -312,9 +316,10 @@ void ADefaultPlayerController::Skill4Completed()
 	FVector Location = GetPawn()->GetActorLocation();
 	Location.Z = 0;
 
-	SimpleMoveToLocation(this, Location);
-	this->MoveToLocation(Location);
+	Server_StopMove();
+	Multicast_StopMove();
 
+	Multicast_SetRotation(GetMouseHitLocation()); 
 	Server_SetRotation(GetMouseHitLocation());
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill4 Completed"));
@@ -386,6 +391,23 @@ void ADefaultPlayerController::Multicast_SetRotation_Implementation(FVector Mous
 void ADefaultPlayerController::Server_SetRotation_Implementation(FVector MouseHitLocation)
 {
 	Multicast_SetRotation(MouseHitLocation);
+}
+
+void ADefaultPlayerController::Server_StopMove_Implementation()
+{
+	Multicast_StopMove();
+}
+
+void ADefaultPlayerController::Multicast_StopMove_Implementation()
+{
+	UPathFollowingComponent* PFollowComp = this->FindComponentByClass<UPathFollowingComponent>();
+	if (!PFollowComp) return;
+
+	PFollowComp->OnRequestFinished.Clear();
+
+	PFollowComp->RequestMoveWithImmediateFinish(EPathFollowingResult::Success);
+
+	PFollowComp->OnRequestFinished.AddUObject(this, &ADefaultPlayerController::OnMoveCompleted);
 }
 
 FVector ADefaultPlayerController::GetMouseHitLocation()

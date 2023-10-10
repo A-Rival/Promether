@@ -46,6 +46,11 @@ public:
 	UFUNCTION(Server, Reliable)
 	void MoveToLocation(FVector Location);
 
+	UFUNCTION(Server, Reliable)
+	void Server_StopMove();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_StopMove();
+
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SetRotation(FVector MouseHitLocation);
 

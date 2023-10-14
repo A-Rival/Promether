@@ -384,33 +384,7 @@ void ADefaultPlayerController::Move()
 
 	if (HitObject != nullptr)
 	{
-		float MinDistance = 100000.0f; // 최소 거리
-
-		FVector Destination = HitObject->GetActorLocation(); // HitObject의 위치를 목적지로 설정
-
-		if (FVector::Dist(Destination, GetPawn()->GetActorLocation()) <= MinDistance)
-		{
-			FVector Location = GetPawn()->GetActorLocation();
-			Location.Z = 0;
-
-			Server_StopMove();
-			Multicast_StopMove();
-
-			Multicast_SetRotation(GetMouseHitLocation());
-			Server_SetRotation(GetMouseHitLocation());
-
-			GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
-			GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Attack);
-		}
-		else 
-		{
-			GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
-			SimpleMoveToLocation(this, Destination);
-			this->MoveToLocation(Destination);
-		}
-		
-
-		
+		Attack(HitObject);
 	}
 	else 
 	{
@@ -590,11 +564,36 @@ void ADefaultPlayerController::OnMoveCompleted(FAIRequestID RequestID, const FPa
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
 }
 
-void ADefaultPlayerController::Attack()
+void ADefaultPlayerController::Attack(ACharacter* HitObject)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Attack"));
-	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
-	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Attack);
+	//반복문으로 만들어 사용하기
+	float MinDistance = 1000.0f; // 최소 거리(임시 : 추후에 캐릭터 사정거리 받아올것)
+
+	FVector Destination = HitObject->GetActorLocation(); // HitObject의 위치를 목적지로 설정
+
+	if (FVector::Dist(Destination, GetPawn()->GetActorLocation()) <= MinDistance)
+	{
+		FVector Location = GetPawn()->GetActorLocation();
+		Location.Z = 0;
+
+		Server_StopMove();
+		Multicast_StopMove();
+
+		Multicast_SetRotation(GetMouseHitLocation());
+		Server_SetRotation(GetMouseHitLocation());
+
+		UE_LOG(LogTemp, Warning, TEXT("Attack"));
+		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
+		GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Attack);
+	}
+	else
+	{
+		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
+		SimpleMoveToLocation(this, Destination);
+		this->MoveToLocation(Destination);
+	}
+
+
 }
 
 void ADefaultPlayerController::MoveToLocation_Implementation(FVector Location)

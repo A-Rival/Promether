@@ -64,7 +64,9 @@ public:
 
 	void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult &MovementResult);
 
-	void Attack();
+
+
+	void Attack(ACharacter* HitObject);
 
 	UPROPERTY(BlueprintReadWrite)
 	float MouseClickInterval;

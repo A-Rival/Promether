@@ -371,14 +371,62 @@ void ADefaultPlayerController::ObjectSelect()
 	SetACharacterOutlineColor(HitObject, true);
 }
 
+
 void ADefaultPlayerController::Move()
 {
-	FVector Destination = GetMouseHitLocation();
+	FHitResult HitResult;
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
 
-	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
-	SimpleMoveToLocation(this, Destination);
-	this->MoveToLocation(Destination);
+	GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult);
+	ACharacter* HitObject = Cast<ACharacter>(HitResult.GetActor());
+
+	if (HitObject != nullptr)
+	{
+		float MinDistance = 100000.0f; // 최소 거리
+
+		FVector Destination = HitObject->GetActorLocation(); // HitObject의 위치를 목적지로 설정
+
+		if (FVector::Dist(Destination, GetPawn()->GetActorLocation()) <= MinDistance)
+		{
+			FVector Location = GetPawn()->GetActorLocation();
+			Location.Z = 0;
+
+			Server_StopMove();
+			Multicast_StopMove();
+
+			Multicast_SetRotation(GetMouseHitLocation());
+			Server_SetRotation(GetMouseHitLocation());
+
+			GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
+			GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Attack);
+		}
+		else 
+		{
+			GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
+			SimpleMoveToLocation(this, Destination);
+			this->MoveToLocation(Destination);
+		}
+		
+
+		
+	}
+	else 
+	{
+		HitObject = nullptr;
+		FVector Destination = GetMouseHitLocation();
+		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
+		SimpleMoveToLocation(this, Destination);
+		this->MoveToLocation(Destination);
+	}
+	
 }
+
+
+
+	
+
 
 void ADefaultPlayerController::Multicast_SetRotation_Implementation(FVector MouseHitLocation)
 {

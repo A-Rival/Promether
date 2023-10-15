@@ -102,6 +102,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 	TMap<CooldownType, float> CooldownDuration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+		TMap<EMaxStats, float> DefaultMaxStats;
+
 protected:
 	UPROPERTY(EditAnywhere)
 	USpringArmComponent* CameraSpringArm;

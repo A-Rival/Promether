@@ -55,7 +55,7 @@ public:
 	UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
 	void			NetMulticast_SetAttackType(CooldownType Value);
 	UFUNCTION(BlueprintCallable)
-		CooldownType	GetAttackType()										const { return AttackType; }
+	CooldownType	GetAttackType()										const { return AttackType; }
 
 	UFUNCTION(BlueprintCallable)
 	int32			GetCharacterLevel()									const;

@@ -59,11 +59,9 @@ void ADefaultPlayerController::OnPossess(APawn* aPawn)
 
 	TArray<float> DefaultStatsValue;
 	TArray<float> CooldownDurationValue;
-	TArray<float> DefaultMaxStatsValue;
 
 	ControlledPawn->DefaultStats.GenerateValueArray(DefaultStatsValue);
 	ControlledPawn->CooldownDuration.GenerateValueArray(CooldownDurationValue);
-	ControlledPawn->DefaultMaxStats.GenerateValueArray(DefaultMaxStatsValue);
 
 	MyPlayerState->InitPlayerStats(DefaultStatsValue, CooldownDurationValue);
 }

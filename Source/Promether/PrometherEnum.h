@@ -131,22 +131,5 @@ enum class EStats : uint8
 	Skill2Cost,
 	Skill3Cost,
 	Skill4Cost,
-	Skill1Level,
-	Skill2Level,
-	Skill3Level,
-	Skill4Level,
-	Exp,
-	PlayerLevel,
-	SkillPoint,
-	SIZE
-};
-
-UENUM(BlueprintType)
-enum class EMaxStats : uint8
-{
-	HealthMax,
-	ManaMax,
-	EnergyMax,
-	ExpMax,
 	SIZE
 };

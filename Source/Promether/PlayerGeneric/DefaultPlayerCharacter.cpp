@@ -30,9 +30,6 @@ ADefaultPlayerCharacter::ADefaultPlayerCharacter()
 
 	for (uint8 i = 0; i < (uint8)CooldownType::SIZE; i++)
 		CooldownDuration.Add((CooldownType)i, 0.0f);
-
-	for (uint8 i = 0; i < (uint8)EMaxStats::SIZE; i++)
-		DefaultMaxStats.Add((EMaxStats)i, 0.0f);
 }
 
 void ADefaultPlayerCharacter::Tick(float DeltaTime)

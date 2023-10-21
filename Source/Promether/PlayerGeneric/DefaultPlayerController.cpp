@@ -384,16 +384,14 @@ void ADefaultPlayerController::Move()
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
 
 	GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult); 
-	ACharacter* HitObject = Cast<ACharacter>(HitResult.GetActor()); //오브젝트를 가져와 HitCharactor에 저장<<추후 적 캐릭터일때만 저장으로 변경해야함
+	ACharacter* HitCharacter = Cast<ACharacter>(HitResult.GetActor()); //오브젝트를 가져와 HitCharactor에 저장<<추후 적 캐릭터일때만 저장으로 변경해야함
 
-	if (HitObject != nullptr) //지금은 HitObject가 null이 아닐 경우 Attack()을 실행하는 코드지만, HitObject가 적 캐릭터일 때 실행으로 변경해야함
+	if (HitCharacter != nullptr) //지금은 HitObject가 null이 아닐 경우 Attack()을 실행하는 코드지만, HitObject가 적 캐릭터일 때 실행으로 변경해야함
 	{
-		
-		Attack(HitObject); //HitObject를 대상으로 Attack 실행
+		Attack(HitCharacter); //HitObject를 대상으로 Attack 실행
 	}
 	else 
 	{
-		HitObject = nullptr;
 		FVector Destination = GetMouseHitLocation();
 		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
 		SimpleMoveToLocation(this, Destination);
@@ -401,11 +399,6 @@ void ADefaultPlayerController::Move()
 	}
 	
 }
-
-
-
-	
-
 
 void ADefaultPlayerController::Multicast_SetRotation_Implementation(FVector MouseHitLocation)
 {
@@ -571,55 +564,37 @@ void ADefaultPlayerController::OnMoveCompleted(FAIRequestID RequestID, const FPa
 
 void ADefaultPlayerController::Attack(ACharacter* HitObject)
 {
-	
+	if (!HitObject) return;
+
 	float MinDistance = GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats:: AttackRange];
-		FVector Destination = HitObject->GetActorLocation(); // HitObject의 위치를 목적지로 설정
-		if (FVector::Dist(Destination, GetPawn()->GetActorLocation()) <= MinDistance)
-		{
-			if ((GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Attack] == 0))
-			{
-				FVector Location = GetPawn()->GetActorLocation();
-				Location.Z = 0;
+	FVector Destination = HitObject->GetActorLocation(); // HitObject의 위치를 목적지로 설정
 
-				Server_StopMove();
-				Multicast_StopMove();
+	if (FVector::Dist(Destination, GetPawn()->GetActorLocation()) <= MinDistance)
+	{
+		if ((GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Attack] != 0))
+			return;
 
-				Multicast_SetRotation(GetMouseHitLocation());
-				Server_SetRotation(GetMouseHitLocation());
+		FVector Location = GetPawn()->GetActorLocation();
+		Location.Z = 0;
 
-				UE_LOG(LogTemp, Warning, TEXT("Attack"));
-				GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
-				GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Attack);
-			}
-			else
-			{
-				FVector Location = GetPawn()->GetActorLocation();
-				Location.Z = 0;
+		Server_StopMove();
+		Multicast_StopMove();
 
-				Server_StopMove();
-				Multicast_StopMove();
+		Multicast_SetRotation(GetMouseHitLocation());
+		Server_SetRotation(GetMouseHitLocation());
 
-				Multicast_SetRotation(GetMouseHitLocation());
-				Server_SetRotation(GetMouseHitLocation());
-
-				UE_LOG(LogTemp, Warning, TEXT("Attack"));
-				GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
-				GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Attack);
-			}
-
-		}
-		else
-		{
-			GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
-			SimpleMoveToLocation(this, Destination);
+		UE_LOG(LogTemp, Warning, TEXT("Attack"));
+		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
+		GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Attack);
+	}
+	else
+	{
+		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
+		SimpleMoveToLocation(this, Destination);
 			
-				Destination = HitObject->GetActorLocation(); // HitObject의 위치를 목적지로 설정
-				this->MoveToLocation(Destination);
-				
-			
-		}
-
-		
+		Destination = HitObject->GetActorLocation(); // HitObject의 위치를 목적지로 설정
+		this->MoveToLocation(Destination);
+	}
 }
 
 void ADefaultPlayerController::MoveToLocation_Implementation(FVector Location)

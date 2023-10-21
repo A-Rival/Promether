@@ -386,8 +386,18 @@ void ADefaultPlayerController::Move()
 	GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult); 
 	ACharacter* HitCharacter = Cast<ACharacter>(HitResult.GetActor()); //오브젝트를 가져와 HitCharactor에 저장<<추후 적 캐릭터일때만 저장으로 변경해야함
 
-	if (HitCharacter != nullptr) //지금은 HitObject가 null이 아닐 경우 Attack()을 실행하는 코드지만, HitObject가 적 캐릭터일 때 실행으로 변경해야함
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *HitResult.GetActor()->GetName());
+
+	if (HitResult.GetActor() != GetPawn<AActor>()) //지금은 HitObject가 null이 아닐 경우 Attack()을 실행하는 코드지만, HitObject가 적 캐릭터일 때 실행으로 변경해야함
 	{
+		if (!HitCharacter)
+		{
+			FVector Destination = GetMouseHitLocation();
+			GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
+			SimpleMoveToLocation(this, Destination);
+			this->MoveToLocation(Destination);
+			return;
+		}
 		Attack(HitCharacter); //HitObject를 대상으로 Attack 실행
 	}
 	else 
@@ -564,8 +574,6 @@ void ADefaultPlayerController::OnMoveCompleted(FAIRequestID RequestID, const FPa
 
 void ADefaultPlayerController::Attack(ACharacter* HitObject)
 {
-	if (!HitObject) return;
-
 	float MinDistance = GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats:: AttackRange];
 	FVector Destination = HitObject->GetActorLocation(); // HitObject의 위치를 목적지로 설정
 

@@ -21,7 +21,8 @@ public:
 					ADefaultPlayerState();
 	void			GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 
-	void			InitPlayerStats();
+	UFUNCTION(Server, Reliable)
+	void			InitPlayerStats(const TArray<float>& StatsValue, const TArray<float>& CooldownDurationValue);
 
 	void			SetCharacterBPRef(UClass* Value)					{ CharacterBPRef = Value; }
 	UClass*			GetCharacterBPRef()									const { return CharacterBPRef; }
@@ -34,10 +35,11 @@ public:
 	void			SetPlayerCamera(AActor* Actor)						{ PlayerCamera = Actor; }
 	AActor*			GetPlayerCamera()									const { return PlayerCamera; }
 
-	UFUNCTION(BlueprintCallable)
-	void			SetCooldownDuration(CooldownType Key, float Value)	{ CooldownDuration[(uint8)Key] = Value; }
-	UFUNCTION(BlueprintCallable)
-	float			GetCooldownDuration(CooldownType Key)				const { return CooldownDuration[(uint8)Key]; }
+	//fix later
+	//UFUNCTION(BlueprintCallable)
+	//void			SetCooldownDuration(CooldownType Key, float Value)	{ CooldownDuration[(uint8)Key] = Value; }
+	//UFUNCTION(BlueprintCallable)
+	//float			GetCooldownDuration(CooldownType Key)				const { return CooldownDuration[(uint8)Key]; }
 
 	//Execute on server
 	UFUNCTION(BlueprintCallable, Server, Reliable)
@@ -57,23 +59,22 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int32			GetCharacterLevel()									const;
-
-	//Should be ONLY executed on server!!
-	void			SetMultipleCooldownDuration(const float* Value)		;
 	
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
-	FDefaultStats Stats;
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
-	FDefaultStats MaxStats;
+	UPROPERTY(Replicated, Transient, EditAnywhere, BlueprintReadWrite)
+	TArray<float> Stats;
+	UPROPERTY(Replicated, Transient, EditAnywhere, BlueprintReadWrite)
+	TArray<float> MaxStats;
+
+	UPROPERTY(Replicated, Transient, BlueprintReadWrite)
+	TArray<float> CooldownDuration;
+	UPROPERTY(Replicated, Transient, BlueprintReadWrite)
+	TArray<float> MaxCooldownDuration;
 
 private:
 	UPROPERTY(Replicated, Transient)
 	UClass*			CharacterBPRef;
 	UPROPERTY(Replicated, Transient)
 	TeamType		Team;
-
-	UPROPERTY(Replicated, Transient)
-	float			CooldownDuration[(uint8)CooldownType::SIZE] = { 0.0f, };
 
 	UPROPERTY(Replicated, Transient)
 	ECharacterState State;

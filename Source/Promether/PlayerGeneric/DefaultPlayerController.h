@@ -34,18 +34,28 @@ public:
 	void Skill1();
 	void Skill2();
 	void Skill3();
-	void Skill4();
+	void Skill4Triggered();
+	void Skill4Completed();
 	void RuneSpell1();
 	void RuneSpell2();
 	void Ward();
 	void Bomb();
 	void ObjectSelect();
-	void MoveTriggered();
-	void MoveStarted();
 	void Move();
 
 	UFUNCTION(Server, Reliable)
 	void MoveToLocation(FVector Location);
+
+	UFUNCTION(Server, Reliable)
+	void Server_StopMove();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_StopMove();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SetRotation(FVector MouseHitLocation);
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetRotation(FVector MouseHitLocation);
 
 	FVector GetMouseHitLocation();
 
@@ -54,7 +64,9 @@ public:
 
 	void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult &MovementResult);
 
-	void Attack();
+
+
+	void Attack(ACharacter* HitObject);
 
 	UPROPERTY(BlueprintReadWrite)
 	float MouseClickInterval;

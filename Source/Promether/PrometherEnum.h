@@ -47,6 +47,8 @@ enum class CooldownType : uint8
 	SIZE
 };
 
+
+
 enum class CCType : uint32
 {
 	None			= 0x00000000,
@@ -126,9 +128,13 @@ enum class EStats : uint8
 	HealthRegenerationGrowth,
 	ManaGrowth,
 	ManaRegenerationGrowth,
+	Movable,
+	Skillusable,
+	Attackable,
+	charging,
 	Skill1Cost,
 	Skill2Cost,
 	Skill3Cost,
 	Skill4Cost,
-	SIZE
+	SIZE,
 };

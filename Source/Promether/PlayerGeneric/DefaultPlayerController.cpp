@@ -14,6 +14,8 @@
 #include "DefaultPlayerState.h"
 #include "DefaultPlayerCamera.h"
 
+
+
 void ADefaultPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -246,8 +248,17 @@ void ADefaultPlayerController::SetupInputComponent()
 
 void ADefaultPlayerController::Skill1()
 {
+	if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
+		return;
 	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill1Cost]))
 		return;
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill1Cost];
+	EndAttack();
+
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] = 1;
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] = 1;
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Movable] = 1;
+
 
 	ACharacter* HitObject = nullptr;
 	FVector Location = GetPawn()->GetActorLocation();
@@ -266,9 +277,16 @@ void ADefaultPlayerController::Skill1()
 
 void ADefaultPlayerController::Skill2()
 {
+	if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
+		return;
 	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill2Cost]))
 		return;
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill2Cost];
 
+	EndAttack();
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] = 1;
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] = 1;
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Movable] = 1;
 	ACharacter* HitObject = nullptr;
 	FVector Location = GetPawn()->GetActorLocation();
 	Location.Z = 0;
@@ -286,8 +304,15 @@ void ADefaultPlayerController::Skill2()
 
 void ADefaultPlayerController::Skill3()
 {
+	if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
+		return;
 	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill3Cost]))
 		return;
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill3Cost];
+	EndAttack();
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] = 1;
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] = 1;
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Movable] = 1;
 
 	ACharacter* HitObject = nullptr;
 	FVector Location = GetPawn()->GetActorLocation();
@@ -306,8 +331,27 @@ void ADefaultPlayerController::Skill3()
 
 void ADefaultPlayerController::Skill4Triggered()
 {
-	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]))
-		return;
+	if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 1)//차지가 1(false)일 때
+	{
+		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
+			return;
+		if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]))
+			return;
+		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost];
+		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] = 0;// 수치를 계산하고 charge를 true(0)로 변경
+	}
+	else if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 2) //차지가 2(never)일 때
+	{
+		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
+			return;
+		if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]))
+			return;
+		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]; // 그냥 수치 계산만 실행
+	}
+	EndAttack();
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] = 1;
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] = 1;
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Movable] = 1;
 
 	ACharacter* HitObject = nullptr;
 	FVector Location = GetPawn()->GetActorLocation();
@@ -378,6 +422,7 @@ void ADefaultPlayerController::ObjectSelect()
 
 void ADefaultPlayerController::Move()
 {
+	EndAttack();
 	FHitResult HitResult;
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
@@ -385,11 +430,14 @@ void ADefaultPlayerController::Move()
 
 	GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult); 
 	ACharacter* HitCharacter = Cast<ACharacter>(HitResult.GetActor()); //오브젝트를 가져와 HitCharactor에 저장<<추후 적 캐릭터일때만 저장으로 변경해야함
+	HitTarget = Cast<ACharacter>(HitResult.GetActor());
 
 	UE_LOG(LogTemp, Warning, TEXT("%s"), *HitResult.GetActor()->GetName());
 
 	if (HitResult.GetActor() != GetPawn<AActor>()) //지금은 HitObject가 null이 아닐 경우 Attack()을 실행하는 코드지만, HitObject가 적 캐릭터일 때 실행으로 변경해야함
 	{
+		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0)
+			return;
 		if (!HitCharacter)
 		{
 			FVector Destination = GetMouseHitLocation();
@@ -398,10 +446,12 @@ void ADefaultPlayerController::Move()
 			this->MoveToLocation(Destination);
 			return;
 		}
-		Attack(HitCharacter); //HitObject를 대상으로 Attack 실행
+		BeginAttack(); //HitObject를 대상으로 BeginAttack 실행
 	}
 	else 
 	{
+		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Movable] == 0)
+			return;
 		FVector Destination = GetMouseHitLocation();
 		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
 		SimpleMoveToLocation(this, Destination);
@@ -415,7 +465,14 @@ void ADefaultPlayerController::Multicast_SetRotation_Implementation(FVector Mous
 	FVector Location = GetPawn()->GetActorLocation();
 	Location.Z = 0;
 
-	GetPawn()->SetActorRotation((MouseHitLocation - Location).Rotation());
+	FRotator NewRotation = (MouseHitLocation - Location).Rotation();
+
+	// 만약 X축을 고정하고 싶다면 아래와 같이 해당 값을 설정합니다.
+	
+	NewRotation.Pitch = 0;
+
+	GetPawn()->SetActorRotation(NewRotation);
+	
 }
 
 void ADefaultPlayerController::Server_SetRotation_Implementation(FVector MouseHitLocation)
@@ -572,24 +629,53 @@ void ADefaultPlayerController::OnMoveCompleted(FAIRequestID RequestID, const FPa
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
 }
 
+FTimerHandle TimerHandle;
+
+void ADefaultPlayerController::BeginAttack()
+{
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ADefaultPlayerController::RepeatedAttack, 0.1f, true);
+}
+
+void ADefaultPlayerController::EndAttack()
+{
+
+	GetWorldTimerManager().ClearTimer(TimerHandle);
+}
+
+void ADefaultPlayerController::RepeatedAttack()
+{
+	if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0)
+		return;
+	ACharacter* HitCharacter = HitTarget;
+	Attack(HitCharacter);
+}
+
+
+
 void ADefaultPlayerController::Attack(ACharacter* HitObject)
 {
+	
 	float MinDistance = GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats:: AttackRange];
-	FVector Destination = HitObject->GetActorLocation(); // HitObject의 위치를 목적지로 설정
+	FVector Destination = HitTarget->GetActorLocation(); // HitObject의 위치를 목적지로 설정
 
 	if (FVector::Dist(Destination, GetPawn()->GetActorLocation()) <= MinDistance)
 	{
 		if ((GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Attack] != 0))
 			return;
 
+		Destination = HitObject->GetActorLocation(); // HitObject의 위치를 목적지로 설정
 		FVector Location = GetPawn()->GetActorLocation();
-		Location.Z = 0;
+		Location.X = 0;
 
 		Server_StopMove();
 		Multicast_StopMove();
 
-		Multicast_SetRotation(GetMouseHitLocation());
-		Server_SetRotation(GetMouseHitLocation());
+		Multicast_SetRotation(Destination);
+		Server_SetRotation(Destination);
+		
+	
+		
+		
 
 		UE_LOG(LogTemp, Warning, TEXT("Attack"));
 		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);

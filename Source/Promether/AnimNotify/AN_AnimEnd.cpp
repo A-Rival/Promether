@@ -6,6 +6,7 @@
 #include "../PlayerGeneric/DefaultPlayerCharacter.h"
 #include "../PlayerGeneric/DefaultPlayerState.h"
 
+
 void UAN_AnimEnd::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	ADefaultPlayerCharacter* MyCharacter = MeshComp->GetOwner<ADefaultPlayerCharacter>();
@@ -13,6 +14,6 @@ void UAN_AnimEnd::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 
 	ADefaultPlayerState* MyState = MyCharacter->GetPlayerState<ADefaultPlayerState>();
 	if (!MyState) return;
-
 	MyState->SetState(ECharacterState::Idle);
+
 }

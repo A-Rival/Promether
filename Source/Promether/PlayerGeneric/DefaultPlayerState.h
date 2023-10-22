@@ -27,6 +27,9 @@ public:
 	void			SetCharacterBPRef(UClass* Value)					{ CharacterBPRef = Value; }
 	UClass*			GetCharacterBPRef()									const { return CharacterBPRef; }
 
+	
+
+
 	UFUNCTION(BlueprintCallable)
 	void			SetTeam(TeamType Value)								{ Team = Value; }
 	UFUNCTION(BlueprintCallable)

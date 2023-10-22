@@ -64,12 +64,19 @@ public:
 
 	void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult &MovementResult);
 
+	void BeginAttack();
+	void EndAttack();
+	void RepeatedAttack();
 
 
-	void Attack(ACharacter* HitObject);
+
+	void Attack(ACharacter* HitCharacter);
 
 	UPROPERTY(BlueprintReadWrite)
 	float MouseClickInterval;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "My Actor")
+		ACharacter * HitTarget;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Input")

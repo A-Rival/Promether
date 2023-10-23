@@ -69,14 +69,17 @@ public:
 	void RepeatedAttack();
 
 
+	UFUNCTION(BlueprintImplementableEvent)
+    void SetTarget();
 
-	void Attack(ACharacter* HitCharacter);
+	void Attack();
 
 	UPROPERTY(BlueprintReadWrite)
 	float MouseClickInterval;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "My Actor")
-		ACharacter * HitTarget;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "My Actor")
+	AActor* HitTarget;
+
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Input")

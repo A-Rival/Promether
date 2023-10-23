@@ -49,9 +49,16 @@ void ADefaultPlayerCharacter::Tick(float DeltaTime)
 	*/
 }
 
+
+
 void ADefaultPlayerCharacter::Attack_Implementation()
 {
-	//UGameplayStatics::ApplyDamage(Target, MyState->GetAttackDamage(), Cast<AController>(GetOwner()), this, UBaseAttack::StaticClass());
+	NetMulticast_Attack();
+}
+
+void ADefaultPlayerCharacter::NetMulticast_Attack_Implementation()
+{
+	BP_Attack();
 }
 
 float ADefaultPlayerCharacter::TakeDamage_Implementation(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
@@ -117,6 +124,8 @@ float ADefaultPlayerCharacter::TakeDamage_Implementation(float DamageAmount, str
 		return -1.0f;
 	}
 }
+
+
 
 void ADefaultPlayerCharacter::Skill1_Implementation()
 {

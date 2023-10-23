@@ -430,7 +430,7 @@ void ADefaultPlayerController::Move()
 
 	GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult); 
 	ACharacter* HitCharacter = Cast<ACharacter>(HitResult.GetActor()); //오브젝트를 가져와 HitCharactor에 저장<<추후 적 캐릭터일때만 저장으로 변경해야함
-	HitTarget = Cast<ACharacter>(HitResult.GetActor());
+	HitTarget = HitResult.GetActor();
 
 	UE_LOG(LogTemp, Warning, TEXT("%s"), *HitResult.GetActor()->GetName());
 
@@ -646,13 +646,12 @@ void ADefaultPlayerController::RepeatedAttack()
 {
 	if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0)
 		return;
-	ACharacter* HitCharacter = HitTarget;
-	Attack(HitCharacter);
+	Attack();
 }
 
 
 
-void ADefaultPlayerController::Attack(ACharacter* HitObject)
+void ADefaultPlayerController::Attack()
 {
 	
 	float MinDistance = GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats:: AttackRange];
@@ -663,7 +662,7 @@ void ADefaultPlayerController::Attack(ACharacter* HitObject)
 		if ((GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Attack] != 0))
 			return;
 
-		Destination = HitObject->GetActorLocation(); // HitObject의 위치를 목적지로 설정
+		
 		FVector Location = GetPawn()->GetActorLocation();
 		Location.X = 0;
 
@@ -672,9 +671,6 @@ void ADefaultPlayerController::Attack(ACharacter* HitObject)
 
 		Multicast_SetRotation(Destination);
 		Server_SetRotation(Destination);
-		
-	
-		
 		
 
 		UE_LOG(LogTemp, Warning, TEXT("Attack"));
@@ -686,9 +682,11 @@ void ADefaultPlayerController::Attack(ACharacter* HitObject)
 		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
 		SimpleMoveToLocation(this, Destination);
 			
-		Destination = HitObject->GetActorLocation(); // HitObject의 위치를 목적지로 설정
+		
+
 		this->MoveToLocation(Destination);
 	}
+	SetTarget();
 }
 
 void ADefaultPlayerController::MoveToLocation_Implementation(FVector Location)

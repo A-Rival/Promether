@@ -21,8 +21,13 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintNativeEvent)
-	void	Attack();
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+		void Attack();
+	//Override me
+	UFUNCTION(BlueprintImplementableEvent)
+		void BP_Attack();
+	UFUNCTION(NetMulticast, Reliable)
+		void NetMulticast_Attack();
 	UFUNCTION(BlueprintNativeEvent)
 	float	TakeDamage(	float Damage,
 								struct FDamageEvent const& DamageEvent,

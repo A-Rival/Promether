@@ -3,8 +3,10 @@
 
 #include "DefaultPlayerCharacter.h"
 #include "DefaultPlayerState.h"
+#include "../DefaultAIController.h"
 #include "Engine/DamageEvents.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/CapsuleComponent.h"
 
 ADefaultPlayerCharacter::ADefaultPlayerCharacter()
 {
@@ -12,6 +14,9 @@ ADefaultPlayerCharacter::ADefaultPlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	SetCanBeDamaged(true);
 	bUseControllerRotationYaw = false;
+
+	AIControllerClass = ADefaultAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	CameraSpringArm->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.0f), FRotator(-45.0f, 0.0f, 0.0f));
@@ -49,14 +54,13 @@ void ADefaultPlayerCharacter::Tick(float DeltaTime)
 	*/
 }
 
-
-
 void ADefaultPlayerCharacter::Attack_Implementation()
 {
-	NetMulticast_Attack();
+	Client_Attack();
+	BP_Attack();
 }
 
-void ADefaultPlayerCharacter::NetMulticast_Attack_Implementation()
+void ADefaultPlayerCharacter::Client_Attack_Implementation()
 {
 	BP_Attack();
 }
@@ -65,67 +69,61 @@ float ADefaultPlayerCharacter::TakeDamage_Implementation(float DamageAmount, str
 {
 	float ReturnValue = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	if (HasAuthority())
+	ADefaultPlayerState* State = GetPlayerState<ADefaultPlayerState>();
+	if (!State) return ReturnValue;
+
+	if (!Cast<APawn>(DamageCauser)) return ReturnValue;
+
+	ADefaultPlayerState* AttackerState = Cast<APawn>(DamageCauser)->GetPlayerState<ADefaultPlayerState>();
+	if (!AttackerState) return ReturnValue;
+
+	float ADDamageMultiplier = 0;
+	float APDamageMultiplier = 0;
+
+	if (State->Stats[(uint8)EStats::Armor] >= 0)
+		ADDamageMultiplier = 100 / (100 + State->Stats[(uint8)EStats::Armor]);
+	else
+		ADDamageMultiplier = 2 - 100 / (100 - State->Stats[(uint8)EStats::Armor]);
+
+	if (State->Stats[(uint8)EStats::MagicResistance] >= 0)
+		APDamageMultiplier = 100 / (100 + State->Stats[(uint8)EStats::MagicResistance]);
+	else
+		APDamageMultiplier = 2 - 100 / (100 - State->Stats[(uint8)EStats::MagicResistance]);
+
+
+	UE_LOG(LogTemp, Warning, TEXT("%s : ADDamageMultiplier : %f CalculatedDamage : %f"), *DamageCauser->GetName(), ADDamageMultiplier, DamageAmount * ADDamageMultiplier);
+	UE_LOG(LogTemp, Warning, TEXT("%s : APDamageMultiplier : %f CalculatedDamage : %f"), *DamageCauser->GetName(), APDamageMultiplier, DamageAmount * APDamageMultiplier);
+
+	float UpdatedHealth = 0;
+
+	if (Cast<UBaseAttack>(DamageEvent.DamageTypeClass->GetDefaultObject()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TakeDamage Called On Server"));
+		UE_LOG(LogTemp, Warning, TEXT("DamageType : BaseAttack")); 
+
+		UpdatedHealth = State->Stats[(uint8)EStats::Health] - AttackerState->Stats[(uint8)EStats::AttackDamage] * ADDamageMultiplier;
+	}
+	else if (Cast<UAPDamage>(DamageEvent.DamageTypeClass->GetDefaultObject()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DamageType : APDamage"));
+
+		UpdatedHealth = State->Stats[(uint8)EStats::Health] - AttackerState->Stats[(uint8)EStats::AbilityPower] * APDamageMultiplier;
+	}
+
+	if (UpdatedHealth < 0 || UpdatedHealth < 0.1 )
+	{
+		State->Stats[(uint8)EStats::Health] = 0;
+		Server_PerformDead();
+		Client_PerformDead();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TakeDamage Called On Client"));
+		State->Stats[(uint8)EStats::Health] = UpdatedHealth;
 	}
 
-	if (HasAuthority())
-	{
-		if (ADefaultPlayerState* MyState = this->GetInstigatorController()->GetPlayerState<ADefaultPlayerState>())
-		{
-			if (ADefaultPlayerState* EventInstigatorState = EventInstigator->GetPlayerState<ADefaultPlayerState>())
-			{
-				float ADDamageMultiplier = 0;
-				float APDamageMultiplier = 0;
+	UE_LOG(LogTemp, Warning, TEXT("Current Health : %f"), State->Stats[(uint8)EStats::Health]);
 
-				if (MyState->Stats[(uint8)EStats::Armor] >= 0)
-					ADDamageMultiplier = 100 / (100 + MyState->Stats[(uint8)EStats::Armor]);
-				else
-					ADDamageMultiplier = 2 - 100 / (100 - MyState->Stats[(uint8)EStats::Armor]);
-
-				if (MyState->Stats[(uint8)EStats::MagicResistance] >= 0)
-					APDamageMultiplier = 100 / (100 + MyState->Stats[(uint8)EStats::MagicResistance]);
-				else
-					APDamageMultiplier = 2 - 100 / (100 - MyState->Stats[(uint8)EStats::MagicResistance]);
-
-
-				UE_LOG(LogTemp, Warning, TEXT("%s : ADDamageMultiplier : %f CalculatedDamage : %f"), *DamageCauser->GetName(), ADDamageMultiplier, DamageAmount * ADDamageMultiplier);
-				UE_LOG(LogTemp, Warning, TEXT("%s : APDamageMultiplier : %f CalculatedDamage : %f"), *DamageCauser->GetName(), APDamageMultiplier, DamageAmount * APDamageMultiplier);
-
-				if (Cast<UBaseAttack>(DamageEvent.DamageTypeClass->GetDefaultObject()))
-				{
-					UE_LOG(LogTemp, Warning, TEXT("DamageType : BaseAttack")); 
-
-					float UpdatedHealth = MyState->Stats[(uint8)EStats::Health] - EventInstigatorState->Stats[(uint8)EStats::AttackDamage] * ADDamageMultiplier;
-					if (UpdatedHealth < 0)
-					{
-						MyState->Stats[(uint8)EStats::Health] = 0;
-					}
-					else
-					{
-						MyState->Stats[(uint8)EStats::Health] = UpdatedHealth;
-					}
-
-					UE_LOG(LogTemp, Warning, TEXT("Current Health : %f"), MyState->Stats[(uint8)EStats::Health]);
-				}
-				
-			}
-		}
-
-		return ReturnValue;
-	}
-	else
-	{
-		return -1.0f;
-	}
+	return ReturnValue;
 }
-
-
 
 void ADefaultPlayerCharacter::Skill1_Implementation()
 {
@@ -205,4 +203,24 @@ void ADefaultPlayerCharacter::Skill7_Implementation()
 void ADefaultPlayerCharacter::NetMulticast_Skill7_Implementation()
 {
 	BP_Skill7();
+}
+
+void ADefaultPlayerCharacter::PerformDead()
+{
+	ADefaultPlayerState* State = GetPlayerState<ADefaultPlayerState>();
+	if (!State) return;
+
+	State->SetState(ECharacterState::Dead);
+	GetCapsuleComponent()->SetGenerateOverlapEvents(false);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void ADefaultPlayerCharacter::Server_PerformDead_Implementation()
+{
+	PerformDead();
+}
+
+void ADefaultPlayerCharacter::Client_PerformDead_Implementation()
+{
+	PerformDead();
 }

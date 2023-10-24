@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 
 #include "DamageType/BaseAttack.h"
+#include "DamageType/APDamage.h"
 
 UENUM(BlueprintType)
 enum class CharacterType : uint8

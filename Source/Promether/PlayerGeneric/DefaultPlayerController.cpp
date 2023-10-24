@@ -105,7 +105,7 @@ void ADefaultPlayerController::Server_SpawnPlayerCamera_Implementation()
 
 void ADefaultPlayerController::SetACharacterOutlineColor(ACharacter* Target, bool Visible)
 {
-	if (HasAuthority()) return;
+	if (!Target) return;
 
 	ADefaultPlayerState* State = Target->GetPlayerState<ADefaultPlayerState>();
 	if (!State)
@@ -405,47 +405,50 @@ void ADefaultPlayerController::Bomb()
 
 void ADefaultPlayerController::ObjectSelect()
 {
+	ADefaultPlayerState* State = GetPlayerState<ADefaultPlayerState>();
+	if (!State) return;
+
 	FHitResult HitResult;
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
 
 	GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult);
 
 	ACharacter* HitObject = Cast<ACharacter>(HitResult.GetActor());
-	if (!HitObject) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *HitObject->GetName());
-	SetACharacterOutlineColor(HitObject, true);
+	if (!HitObject)
+	{
+		SetACharacterOutlineColor(Cast<ACharacter>(State->GetPreviousAttackTarget()), false);
+		State->SetPreviousAttackTarget(nullptr);
+		State->SetCurrentAttackTarget(nullptr);
+		return;
+	}
+
+	if (State->GetPreviousAttackTarget() != HitResult.GetActor())
+	{
+		SetACharacterOutlineColor(Cast<ACharacter>(State->GetPreviousAttackTarget()), false);
+
+		State->SetPreviousAttackTarget(HitResult.GetActor());
+		State->SetCurrentAttackTarget(HitResult.GetActor());
+
+		SetACharacterOutlineColor(HitObject, true);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *State->GetCurrentAttackTarget()->GetName());
+
+	FString Name = HitResult.GetActor()->GetName();
+	APlayerState* TargetState = Cast<APawn>(HitResult.GetActor())->GetPlayerState();
 }
-
 
 void ADefaultPlayerController::Move()
 {
 	EndAttack();
-	FHitResult HitResult;
-	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
-
-	GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult); 
-	ACharacter* HitCharacter = Cast<ACharacter>(HitResult.GetActor()); //오브젝트를 가져와 HitCharactor에 저장<<추후 적 캐릭터일때만 저장으로 변경해야함
-	HitTarget = HitResult.GetActor();
-
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *HitResult.GetActor()->GetName());
-
-	if (HitResult.GetActor() != GetPawn<AActor>()) //지금은 HitObject가 null이 아닐 경우 Attack()을 실행하는 코드지만, HitObject가 적 캐릭터일 때 실행으로 변경해야함
+	ObjectSelect();
+	
+	if (GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget() != GetPawn<AActor>() &&
+		Cast<ADefaultPlayerCharacter>(GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget())) //본인이 아니고 공격이 가능한 대상(적이든 아군이든)일 때
 	{
-		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0)
-			return;
-		if (!HitCharacter)
-		{
-			FVector Destination = GetMouseHitLocation();
-			GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
-			SimpleMoveToLocation(this, Destination);
-			this->MoveToLocation(Destination);
-			return;
-		}
+		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0) return;
 		BeginAttack(); //HitObject를 대상으로 BeginAttack 실행
 	}
 	else 
@@ -500,7 +503,10 @@ void ADefaultPlayerController::Multicast_StopMove_Implementation()
 FVector ADefaultPlayerController::GetMouseHitLocation()
 {
 	FHitResult HitResult;
-	GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, HitResult);
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
+
+	GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult);
 	HitResult.Location.Z = 0;
 
 	//UE_LOG(LogTemp, Warning, TEXT("Client%d MoveTo : (%f, %f)"), GPlayInEditorID, HitResult.Location.X, HitResult.Location.Y);
@@ -629,39 +635,36 @@ void ADefaultPlayerController::OnMoveCompleted(FAIRequestID RequestID, const FPa
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
 }
 
-FTimerHandle TimerHandle;
-
 void ADefaultPlayerController::BeginAttack()
 {
-		GetWorldTimerManager().SetTimer(TimerHandle, this, &ADefaultPlayerController::RepeatedAttack, 0.1f, true);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ADefaultPlayerController::RepeatedAttack, 0.1f, true);
 }
 
 void ADefaultPlayerController::EndAttack()
 {
-
 	GetWorldTimerManager().ClearTimer(TimerHandle);
 }
 
 void ADefaultPlayerController::RepeatedAttack()
 {
-	if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0)
-		return;
 	Attack();
 }
 
-
-
 void ADefaultPlayerController::Attack()
 {
-	
+	if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0)
+		return;
+
 	float MinDistance = GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats:: AttackRange];
-	FVector Destination = HitTarget->GetActorLocation(); // HitObject의 위치를 목적지로 설정
+
+	if (!GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget()) return;
+
+	FVector Destination = GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget()->GetActorLocation(); // HitObject의 위치를 목적지로 설정
 
 	if (FVector::Dist(Destination, GetPawn()->GetActorLocation()) <= MinDistance)
 	{
 		if ((GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Attack] != 0))
 			return;
-
 		
 		FVector Location = GetPawn()->GetActorLocation();
 		Location.X = 0;
@@ -671,7 +674,6 @@ void ADefaultPlayerController::Attack()
 
 		Multicast_SetRotation(Destination);
 		Server_SetRotation(Destination);
-		
 
 		UE_LOG(LogTemp, Warning, TEXT("Attack"));
 		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
@@ -681,12 +683,8 @@ void ADefaultPlayerController::Attack()
 	{
 		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
 		SimpleMoveToLocation(this, Destination);
-			
-		
-
 		this->MoveToLocation(Destination);
 	}
-	SetTarget();
 }
 
 void ADefaultPlayerController::MoveToLocation_Implementation(FVector Location)

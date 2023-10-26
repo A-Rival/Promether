@@ -136,5 +136,9 @@ enum class EStats : uint8
 	Skill2Cost,
 	Skill3Cost,
 	Skill4Cost,
+	Skill1Level,
+	Skill2Level,
+	Skill3Level,
+	Skill4Level,
 	SIZE,
 };

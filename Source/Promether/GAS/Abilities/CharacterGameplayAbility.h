@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Animation/AnimNotifies/AnimNotify.h"
-#include "AN_Skill5.generated.h"
+#include "Abilities/GameplayAbility.h"
+#include "CharacterGameplayAbility.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROMETHER_API UAN_Skill5 : public UAnimNotify
+class PROMETHER_API UCharacterGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
 	

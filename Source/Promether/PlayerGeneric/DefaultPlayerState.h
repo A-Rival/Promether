@@ -4,16 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
+#include "GameplayEffectTypes.h"
 #include <iostream>
 #include <map>
 
 #include "../PrometherEnum.h"
 #include "DefaultPlayerCharacter.h"
-#include "../StatusEffect/StatusEffect.h"
 #include "DefaultPlayerState.generated.h"
 
 UCLASS()
-class PROMETHER_API ADefaultPlayerState : public APlayerState
+class PROMETHER_API ADefaultPlayerState : public APlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -21,14 +23,27 @@ public:
 					ADefaultPlayerState();
 	void			GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 
+	virtual	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
 	UFUNCTION(Server, Reliable)
 	void			InitPlayerStats(const TArray<float>& StatsValue, const TArray<float>& CooldownDurationValue);
 
 	void			SetCharacterBPRef(UClass* Value)					{ CharacterBPRef = Value; }
 	UClass*			GetCharacterBPRef()									const { return CharacterBPRef; }
 
-	
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	float			GetHealth() const;
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	float			GetMaxHealth() const;
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	float			GetMana() const;
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	float			GetMaxMana() const;
 
+	class UCharacterBaseAttribute* GetAttributeSet() const;
+
+	//UFUNCTION(BlueprintCallable)
+	//bool IsDead() const;
 
 	UFUNCTION(BlueprintCallable)
 	void			SetTeam(TeamType Value)								{ Team = Value; }
@@ -90,7 +105,28 @@ public:
 	UPROPERTY(Replicated, Transient, BlueprintReadWrite)
 	TArray<float> MaxCooldownDuration;
 
-	
+protected:
+	class UDefaultAbilitySystemComponent* AbilitySystemComponent;
+	class UCharacterBaseAttribute* Attribute;
+
+	FGameplayTag DeadTag;
+	FGameplayTag EffectTag;
+
+	FDelegateHandle HealthChangedDelegateHandle;
+	FDelegateHandle MaxHealthChangedDelegateHandle;
+	FDelegateHandle ManaChangedDelegateHandle;
+	FDelegateHandle MaxManaChangedDelegateHandle;
+
+	virtual void BeginPlay() override;
+
+	virtual void HealthChanged(const FOnAttributeChangeData& Data);
+	virtual void MaxHealthChanged(const FOnAttributeChangeData& Data);
+	virtual void ManaChanged(const FOnAttributeChangeData& Data);
+	virtual void MaxManaChanged(const FOnAttributeChangeData& Data);
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
+	TSubclassOf<class UGameplayEffect> DefaultAttributes;
+
 private:
 	UPROPERTY(Replicated, Transient)
 	UClass*			CharacterBPRef;

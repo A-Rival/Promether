@@ -12,6 +12,10 @@ ADefaultAIController::ADefaultAIController()
 
 void ADefaultAIController::OnPossess(APawn* aPawn)
 {
+	/* 
+	* 
+	* This was Stat initialize code. Depricated.
+
 	//debug
 	FString MyName = aPawn->GetName();
 
@@ -30,4 +34,5 @@ void ADefaultAIController::OnPossess(APawn* aPawn)
 	ControlledPawn->CooldownDuration.GenerateValueArray(CooldownDurationValue);
 
 	MyPlayerState->InitPlayerStats(DefaultStatsValue, CooldownDurationValue);
+	*/
 }

@@ -8,10 +8,22 @@ void UCharacterBaseAttribute::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME_CONDITION_NOTIFY(UCharacterBaseAttribute, Team, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCharacterBaseAttribute, XP, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCharacterBaseAttribute, Health, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCharacterBaseAttribute, MaxHealth, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCharacterBaseAttribute, Mana, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCharacterBaseAttribute, MaxMana, COND_None, REPNOTIFY_Always);
+}
+
+void UCharacterBaseAttribute::OnRep_Team(const FGameplayAttributeData& OldTeam)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCharacterBaseAttribute, Team, OldTeam);
+}
+
+void UCharacterBaseAttribute::OnRep_XP(const FGameplayAttributeData& OldXP)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCharacterBaseAttribute, XP, OldXP);
 }
 
 void UCharacterBaseAttribute::OnRep_Health(const FGameplayAttributeData& OldHealth)

@@ -6,8 +6,6 @@
 ADefaultPlayerState::ADefaultPlayerState()
 {
 	CharacterBPRef = nullptr;
-	Team = TeamType::Null;
-	State = ECharacterState::Idle;
 
 	AbilitySystemComponent = CreateDefaultSubobject<UDefaultAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
@@ -18,7 +16,8 @@ ADefaultPlayerState::ADefaultPlayerState()
 	NetUpdateFrequency = 100.0f;
 
 	DeadTag = FGameplayTag::RequestGameplayTag(FName("State.Dead"));
-	EffectTag = FGameplayTag::RequestGameplayTag(FName("State.EffectTag"));
+	TeamTag = FGameplayTag::RequestGameplayTag(FName("Team.Neutral"));;
+	EffectTag = FGameplayTag::RequestGameplayTag(FName("State.Return"));
 }
 
 void ADefaultPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -26,17 +25,7 @@ void ADefaultPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ADefaultPlayerState, CharacterBPRef);
-	DOREPLIFETIME(ADefaultPlayerState, Team);
-
-	DOREPLIFETIME(ADefaultPlayerState, CooldownDuration);
-
-	DOREPLIFETIME(ADefaultPlayerState, Stats);
-	DOREPLIFETIME(ADefaultPlayerState, MaxStats);
-
-	DOREPLIFETIME(ADefaultPlayerState, State);
-	DOREPLIFETIME(ADefaultPlayerState, AttackType);
 	DOREPLIFETIME(ADefaultPlayerState, PlayerCamera);
-
 	DOREPLIFETIME(ADefaultPlayerState, CurrentAttackTarget);
 	DOREPLIFETIME(ADefaultPlayerState, PreviousAttackTarget);
 }
@@ -44,6 +33,31 @@ void ADefaultPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 UAbilitySystemComponent* ADefaultPlayerState::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+UCharacterBaseAttribute* ADefaultPlayerState::GetAttributeSet() const
+{
+	return Attribute;
+}
+
+bool ADefaultPlayerState::IsDead() const
+{
+	return GetHealth() < 0.0f;
+}
+
+void ADefaultPlayerState::ShowAbliityConfirmCancelText(bool ShowText)
+{
+	// TODO -- implement HUD
+}
+
+TeamType ADefaultPlayerState::GetTeam() const
+{
+	return TeamType::Null;
+}
+
+float ADefaultPlayerState::GetXP() const
+{
+	return Attribute->GetXP();
 }
 
 float ADefaultPlayerState::GetHealth() const
@@ -66,48 +80,70 @@ float ADefaultPlayerState::GetMaxMana() const
 	return Attribute->GetMaxMana();
 }
 
-void ADefaultPlayerState::InitPlayerStats_Implementation(const TArray<float>& StatsValue, const TArray<float>& CooldownDurationValue)
+int32 ADefaultPlayerState::GetCharacterLevel() const
 {
-	MaxStats.Append(StatsValue);
-	Stats.Append(StatsValue);
-	CooldownDuration.Append(CooldownDurationValue);
-	MaxCooldownDuration.Append(CooldownDurationValue);
+	return Attribute->GetXP() / 100.0f;
+}
 
-	for (float Value : StatsValue)
+void ADefaultPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (AbilitySystemComponent)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Values: %f"), Value);
+		TeamChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute->GetHealthAttribute()).AddUObject(this, &ADefaultPlayerState::TeamChanged);
+		XPChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute->GetHealthAttribute()).AddUObject(this, &ADefaultPlayerState::XPChanged);
+		HealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute->GetHealthAttribute()).AddUObject(this, &ADefaultPlayerState::HealthChanged);
+		MaxHealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute->GetMaxHealthAttribute()).AddUObject(this, &ADefaultPlayerState::MaxHealthChanged);
+		ManaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute->GetManaAttribute()).AddUObject(this, &ADefaultPlayerState::ManaChanged);
+		MaxManaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute->GetMaxManaAttribute()).AddUObject(this, &ADefaultPlayerState::MaxManaChanged);
+
+		AbilitySystemComponent->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("State.Debuff.Stun")), EGameplayTagEventType::NewOrRemoved
+		).AddUObject(this, &ADefaultPlayerState::StunTagChanged);
 	}
 }
 
-void ADefaultPlayerState::NetMulticast_SetAttackType_Implementation(CooldownType Value)
+void ADefaultPlayerState::TeamChanged(const FOnAttributeChangeData& Data)
 {
-	AttackType = Value;
+	UE_LOG(LogTemp, Warning, TEXT("TeamChanged"));
 }
 
-void ADefaultPlayerState::NetMulticast_SetState_Implementation(ECharacterState Value)
+void ADefaultPlayerState::XPChanged(const FOnAttributeChangeData& Data)
 {
-	State = Value;
+	UE_LOG(LogTemp, Warning, TEXT("XPChanged"));
 }
 
-void ADefaultPlayerState::SetState_Implementation(ECharacterState Value)
+void ADefaultPlayerState::HealthChanged(const FOnAttributeChangeData& Data)
 {
-	NetMulticast_SetState(Value);
+	UE_LOG(LogTemp, Warning, TEXT("HealthChanged"));
 }
 
-void ADefaultPlayerState::SetAttackType_Implementation(CooldownType Value)
+void ADefaultPlayerState::MaxHealthChanged(const FOnAttributeChangeData& Data)
 {
-	NetMulticast_SetAttackType(Value);
+	UE_LOG(LogTemp, Warning, TEXT("MaxHealthChanged"));
 }
 
-int32 ADefaultPlayerState::GetCharacterLevel() const
+void ADefaultPlayerState::ManaChanged(const FOnAttributeChangeData& Data)
 {
-	return int32();
+	UE_LOG(LogTemp, Warning, TEXT("ManaChanged"));
+}
+
+void ADefaultPlayerState::MaxManaChanged(const FOnAttributeChangeData& Data)
+{
+	UE_LOG(LogTemp, Warning, TEXT("MaxManaChanged"));
 }
 
 void ADefaultPlayerState::SetCurrentAttackTarget(AActor* Target)
 {
 	Server_SetCurrentAttackTarget(Target);
 	Client_SetCurrentAttackTarget(Target);
+}
+
+void ADefaultPlayerState::SetPreviousAttackTarget(AActor* Target)
+{
+	Server_SetPreviousAttackTarget(Target);
+	Client_SetPreviousAttackTarget(Target);
 }
 
 void ADefaultPlayerState::Server_SetCurrentAttackTarget_Implementation(AActor* Target)
@@ -120,43 +156,6 @@ void ADefaultPlayerState::Client_SetCurrentAttackTarget_Implementation(AActor* T
 	CurrentAttackTarget = Target;
 }
 
-void ADefaultPlayerState::SetPreviousAttackTarget(AActor* Target)
-{
-	Server_SetPreviousAttackTarget(Target);
-	Client_SetPreviousAttackTarget(Target);
-}
-
-void ADefaultPlayerState::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (AbilitySystemComponent)
-	{
-		HealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute->GetHealthAttribute()).AddUObject(this, &ADefaultPlayerState::HealthChanged);
-		MaxHealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute->GetMaxHealthAttribute()).AddUObject(this, &ADefaultPlayerState::MaxHealthChanged);
-		ManaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute->GetManaAttribute()).AddUObject(this, &ADefaultPlayerState::ManaChanged);
-		MaxManaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute->GetMaxManaAttribute()).AddUObject(this, &ADefaultPlayerState::MaxManaChanged);
-
-		//AbilitySystemComponent->RegisterGameplayTagEvent(FGameplayTag::Request)
-	}
-}
-
-void ADefaultPlayerState::HealthChanged(const FOnAttributeChangeData& Data)
-{
-}
-
-void ADefaultPlayerState::MaxHealthChanged(const FOnAttributeChangeData& Data)
-{
-}
-
-void ADefaultPlayerState::ManaChanged(const FOnAttributeChangeData& Data)
-{
-}
-
-void ADefaultPlayerState::MaxManaChanged(const FOnAttributeChangeData& Data)
-{
-}
-
 void ADefaultPlayerState::Server_SetPreviousAttackTarget_Implementation(AActor* Target)
 {
 	PreviousAttackTarget = Target;
@@ -165,4 +164,18 @@ void ADefaultPlayerState::Server_SetPreviousAttackTarget_Implementation(AActor* 
 void ADefaultPlayerState::Client_SetPreviousAttackTarget_Implementation(AActor* Target)
 {
 	PreviousAttackTarget = Target;
+}
+
+void ADefaultPlayerState::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (NewCount > 0)
+	{
+		FGameplayTagContainer AbilityTagsToCancel;
+		AbilityTagsToCancel.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability")));
+
+		FGameplayTagContainer AbilityTagsToIgnore;
+		AbilityTagsToCancel.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.NotCanceledByStun")));
+
+		AbilitySystemComponent->CancelAbilities(&AbilityTagsToCancel, &AbilityTagsToIgnore);
+	}
 }

@@ -17,8 +17,11 @@ void UDefaultAnimBPBase::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		if (ADefaultPlayerState* MyPlayerState = MyPawn->GetPlayerState<ADefaultPlayerState>())
 		{
+			// TODO - animation state update fix
+			/*
 			State = MyPlayerState->GetState();
 			AttackType = MyPlayerState->GetAttackType();
+			*/
 
 			/*
 			if (!GPlayInEditorID)

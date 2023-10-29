@@ -22,6 +22,14 @@ public:
 	//Replicated
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	UPROPERTY(BlueprintReadonly, Category = "Team", ReplicatedUsing = OnRep_Team)
+	FGameplayAttributeData Team;
+	ATTRIBUTE_ACCESSORS(UCharacterBaseAttribute, Team)
+
+	UPROPERTY(BlueprintReadonly, Category = "XP", ReplicatedUsing = OnRep_XP)
+	FGameplayAttributeData XP;
+	ATTRIBUTE_ACCESSORS(UCharacterBaseAttribute, XP)
+
 	UPROPERTY(BlueprintReadonly, Category = "Health", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UCharacterBaseAttribute, Health)
@@ -38,6 +46,10 @@ public:
 	FGameplayAttributeData MaxMana;
 	ATTRIBUTE_ACCESSORS(UCharacterBaseAttribute, MaxMana)
 
+	UFUNCTION()
+	virtual void OnRep_Team(const FGameplayAttributeData& OldTeam);
+	UFUNCTION()
+	virtual void OnRep_XP(const FGameplayAttributeData& OldXP);
 	UFUNCTION()
 	virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);
 	UFUNCTION()

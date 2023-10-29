@@ -11,7 +11,7 @@
 #include <map>
 
 #include "../PrometherEnum.h"
-#include "DefaultPlayerCharacter.h"
+#include "../GAS/AttributeSet/CharacterBaseAttribute.h"
 #include "DefaultPlayerState.generated.h"
 
 UCLASS()
@@ -23,57 +23,34 @@ public:
 					ADefaultPlayerState();
 	void			GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 
-	virtual	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
-	UFUNCTION(Server, Reliable)
-	void			InitPlayerStats(const TArray<float>& StatsValue, const TArray<float>& CooldownDurationValue);
+	virtual	class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	void			SetCharacterBPRef(UClass* Value)					{ CharacterBPRef = Value; }
 	UClass*			GetCharacterBPRef()									const { return CharacterBPRef; }
 
-	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	UFUNCTION(BlueprintCallable, Category = "DefaultPlayerState")
+	TeamType		GetTeam() const;
+	UFUNCTION(BlueprintCallable, Category = "DefaultPlayerState|Attributes")
+	float			GetXP() const;
+	UFUNCTION(BlueprintCallable, Category = "DefaultPlayerState|Attributes")
 	float			GetHealth() const;
-	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	UFUNCTION(BlueprintCallable, Category = "DefaultPlayerState|Attributes")
 	float			GetMaxHealth() const;
-	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	UFUNCTION(BlueprintCallable, Category = "DefaultPlayerState|Attributes")
 	float			GetMana() const;
-	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	UFUNCTION(BlueprintCallable, Category = "DefaultPlayerState|Attributes")
 	float			GetMaxMana() const;
 
 	class UCharacterBaseAttribute* GetAttributeSet() const;
 
-	//UFUNCTION(BlueprintCallable)
-	//bool IsDead() const;
+	UFUNCTION(BlueprintCallable)
+	bool IsDead() const;
 
-	UFUNCTION(BlueprintCallable)
-	void			SetTeam(TeamType Value)								{ Team = Value; }
-	UFUNCTION(BlueprintCallable)
-	TeamType		GetTeam()											const { return Team; }
+	UFUNCTION(BlueprintCallable, Category = "DefaultPlayerState|UI")
+	void ShowAbliityConfirmCancelText(bool ShowText);
 
 	void			SetPlayerCamera(AActor* Actor)						{ PlayerCamera = Actor; }
 	AActor*			GetPlayerCamera()									const { return PlayerCamera; }
-
-	//fix later
-	//UFUNCTION(BlueprintCallable)
-	//void			SetCooldownDuration(CooldownType Key, float Value)	{ CooldownDuration[(uint8)Key] = Value; }
-	//UFUNCTION(BlueprintCallable)
-	//float			GetCooldownDuration(CooldownType Key)				const { return CooldownDuration[(uint8)Key]; }
-
-	//Execute on server
-	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void			SetState(ECharacterState Value);
-	UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
-	void			NetMulticast_SetState(ECharacterState Value);
-	UFUNCTION(BlueprintCallable)
-	ECharacterState GetState()											const { return State; }
-
-	//Execute on server
-	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void			SetAttackType(CooldownType Value);
-	UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
-	void			NetMulticast_SetAttackType(CooldownType Value);
-	UFUNCTION(BlueprintCallable)
-	CooldownType	GetAttackType()										const { return AttackType; }
 
 	UFUNCTION(BlueprintCallable)
 	int32			GetCharacterLevel()									const;
@@ -110,8 +87,11 @@ protected:
 	class UCharacterBaseAttribute* Attribute;
 
 	FGameplayTag DeadTag;
+	FGameplayTag TeamTag;
 	FGameplayTag EffectTag;
 
+	FDelegateHandle TeamChangedDelegateHandle;
+	FDelegateHandle XPChangedDelegateHandle;
 	FDelegateHandle HealthChangedDelegateHandle;
 	FDelegateHandle MaxHealthChangedDelegateHandle;
 	FDelegateHandle ManaChangedDelegateHandle;
@@ -119,24 +99,21 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	virtual void TeamChanged(const FOnAttributeChangeData& Data);
+	virtual void XPChanged(const FOnAttributeChangeData& Data);
 	virtual void HealthChanged(const FOnAttributeChangeData& Data);
 	virtual void MaxHealthChanged(const FOnAttributeChangeData& Data);
 	virtual void ManaChanged(const FOnAttributeChangeData& Data);
 	virtual void MaxManaChanged(const FOnAttributeChangeData& Data);
+
+	virtual void StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
 	TSubclassOf<class UGameplayEffect> DefaultAttributes;
 
 private:
 	UPROPERTY(Replicated, Transient)
-	UClass*			CharacterBPRef;
-	UPROPERTY(Replicated, Transient)
-	TeamType		Team;
-
-	UPROPERTY(Replicated, Transient)
-	ECharacterState State;
-	UPROPERTY(Replicated, Transient)
-	CooldownType AttackType;
+	UClass* CharacterBPRef;
 
 	UPROPERTY(Replicated, Transient)
 	AActor* PlayerCamera;

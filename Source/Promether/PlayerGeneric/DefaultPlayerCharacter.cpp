@@ -2,17 +2,34 @@
 
 
 #include "DefaultPlayerCharacter.h"
-#include "DefaultPlayerState.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
 #include "../DefaultAIController.h"
 #include "Engine/DamageEvents.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
+#include "Promether/Promether.h"
+#include "Promether/GAS/DefaultAbilitySystemComponent.h"
+#include "Promether/GAS/AttributeSet/CharacterBaseAttribute.h"
 
-ADefaultPlayerCharacter::ADefaultPlayerCharacter()
+ADefaultPlayerCharacter::ADefaultPlayerCharacter(const FObjectInitializer& ObjectInitializer) :
+	Super(ObjectInitializer.SetDefaultSubobjectClass<UCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	SetCanBeDamaged(true);
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Overlap);
+
+	bAlwaysRelevant = true;
+
+	DeadTag = FGameplayTag::RequestGameplayTag(FName("State.Dead"));
+	TeamTag = FGameplayTag::RequestGameplayTag(FName("Team.Neutral"));
+	EffectRemoveOnDeathTag = FGameplayTag::RequestGameplayTag(FName("Status.Buff.Regenerate.Health"));
+
 	bUseControllerRotationYaw = false;
 
 	AIControllerClass = ADefaultAIController::StaticClass();
@@ -29,12 +46,11 @@ ADefaultPlayerCharacter::ADefaultPlayerCharacter()
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraSpringArm, USpringArmComponent::SocketName);
-	
-	for (uint8 i = 0; i < (uint8)EStats::SIZE; i++)
-		DefaultStats.Add((EStats)i, 0.0f);
+}
 
-	for (uint8 i = 0; i < (uint8)CooldownType::SIZE; i++)
-		CooldownDuration.Add((CooldownType)i, 0.0f);
+UAbilitySystemComponent* ADefaultPlayerCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent.Get();
 }
 
 void ADefaultPlayerCharacter::Tick(float DeltaTime)
@@ -54,173 +70,221 @@ void ADefaultPlayerCharacter::Tick(float DeltaTime)
 	*/
 }
 
-void ADefaultPlayerCharacter::Attack_Implementation()
+void ADefaultPlayerCharacter::PossessedBy(AController* NewController)
 {
-	Client_Attack();
-	BP_Attack();
-}
+	Super::PossessedBy(NewController);
 
-void ADefaultPlayerCharacter::Client_Attack_Implementation()
-{
-	BP_Attack();
-}
-
-float ADefaultPlayerCharacter::TakeDamage_Implementation(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
-{
-	float ReturnValue = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-
-	ADefaultPlayerState* State = GetPlayerState<ADefaultPlayerState>();
-	if (!State) return ReturnValue;
-
-	if (!Cast<APawn>(DamageCauser)) return ReturnValue;
-
-	ADefaultPlayerState* AttackerState = Cast<APawn>(DamageCauser)->GetPlayerState<ADefaultPlayerState>();
-	if (!AttackerState) return ReturnValue;
-
-	float ADDamageMultiplier = 0;
-	float APDamageMultiplier = 0;
-
-	if (State->Stats[(uint8)EStats::Armor] >= 0)
-		ADDamageMultiplier = 100 / (100 + State->Stats[(uint8)EStats::Armor]);
-	else
-		ADDamageMultiplier = 2 - 100 / (100 - State->Stats[(uint8)EStats::Armor]);
-
-	if (State->Stats[(uint8)EStats::MagicResistance] >= 0)
-		APDamageMultiplier = 100 / (100 + State->Stats[(uint8)EStats::MagicResistance]);
-	else
-		APDamageMultiplier = 2 - 100 / (100 - State->Stats[(uint8)EStats::MagicResistance]);
-
-
-	UE_LOG(LogTemp, Warning, TEXT("%s : ADDamageMultiplier : %f CalculatedDamage : %f"), *DamageCauser->GetName(), ADDamageMultiplier, DamageAmount * ADDamageMultiplier);
-	UE_LOG(LogTemp, Warning, TEXT("%s : APDamageMultiplier : %f CalculatedDamage : %f"), *DamageCauser->GetName(), APDamageMultiplier, DamageAmount * APDamageMultiplier);
-
-	float UpdatedHealth = 0;
-
-	if (Cast<UBaseAttack>(DamageEvent.DamageTypeClass->GetDefaultObject()))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("DamageType : BaseAttack")); 
-
-		UpdatedHealth = State->Stats[(uint8)EStats::Health] - AttackerState->Stats[(uint8)EStats::AttackDamage] * ADDamageMultiplier;
-	}
-	else if (Cast<UAPDamage>(DamageEvent.DamageTypeClass->GetDefaultObject()))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("DamageType : APDamage"));
-
-		UpdatedHealth = State->Stats[(uint8)EStats::Health] - AttackerState->Stats[(uint8)EStats::AbilityPower] * APDamageMultiplier;
-	}
-
-	if (UpdatedHealth < 0 || UpdatedHealth < 0.1 )
-	{
-		State->Stats[(uint8)EStats::Health] = 0;
-		Server_PerformDead();
-		Client_PerformDead();
-	}
-	else
-	{
-		State->Stats[(uint8)EStats::Health] = UpdatedHealth;
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Current Health : %f"), State->Stats[(uint8)EStats::Health]);
-
-	return ReturnValue;
-}
-
-void ADefaultPlayerCharacter::Skill1_Implementation()
-{
-	NetMulticast_Skill1();
-}
-
-void ADefaultPlayerCharacter::NetMulticast_Skill1_Implementation()
-{
-	BP_Skill1();
-}
-
-void ADefaultPlayerCharacter::Skill2_Implementation()
-{
-	NetMulticast_Skill2();
-}
-
-void ADefaultPlayerCharacter::NetMulticast_Skill2_Implementation()
-{
-	BP_Skill2();
-}
-
-void ADefaultPlayerCharacter::Skill3_Implementation()
-{
-	NetMulticast_Skill3();
-}
-
-void ADefaultPlayerCharacter::NetMulticast_Skill3_Implementation()
-{
-	BP_Skill3();
-}
-
-void ADefaultPlayerCharacter::Skill4_Implementation()
-{
-	NetMulticast_Skill4();
-}
-
-void ADefaultPlayerCharacter::NetMulticast_Skill4_Implementation()
-{
-	BP_Skill4();
-}
-
-void ADefaultPlayerCharacter::Skill4_End_Implementation()
-{
-	NetMulticast_Skill4_End();
-}
-
-void ADefaultPlayerCharacter::NetMulticast_Skill4_End_Implementation()
-{
-	BP_Skill4_End();
-}
-
-void ADefaultPlayerCharacter::Skill5_Implementation()
-{
-	NetMulticast_Skill5();
-}
-
-void ADefaultPlayerCharacter::NetMulticast_Skill5_Implementation()
-{
-	BP_Skill5();
-}
-
-void ADefaultPlayerCharacter::Skill6_Implementation()
-{
-	NetMulticast_Skill6();
-}
-
-void ADefaultPlayerCharacter::NetMulticast_Skill6_Implementation()
-{
-	BP_Skill6();
-}
-
-void ADefaultPlayerCharacter::Skill7_Implementation()
-{
-	NetMulticast_Skill7();
-}
-
-void ADefaultPlayerCharacter::NetMulticast_Skill7_Implementation()
-{
-	BP_Skill7();
-}
-
-void ADefaultPlayerCharacter::PerformDead()
-{
 	ADefaultPlayerState* State = GetPlayerState<ADefaultPlayerState>();
 	if (!State) return;
 
-	State->SetState(ECharacterState::Dead);
-	GetCapsuleComponent()->SetGenerateOverlapEvents(false);
+	InitializeStartingValues(State);
+
+	AddStartupEffects();
+	AddCharacterAbilities();
+}
+
+bool ADefaultPlayerCharacter::IsDead() const
+{
+	return GetHealth() < 0.0f;
+}
+
+int32 ADefaultPlayerCharacter::GetAbilityLevel(EDefaultAbilityID AbilityID) const
+{
+	return 0;
+}
+
+void ADefaultPlayerCharacter::RemoveCharacterAbilities()
+{
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || !AbilitySystemComponent->CharacterAbilitiesGiven)
+		return;
+
+	TArray<FGameplayAbilitySpecHandle> AbilitiesToRemove;
+	for (const FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
+	{
+		if ((Spec.SourceObject == this) && CharacterAbilities.Contains(Spec.Ability->GetClass()))
+		{
+			AbilitiesToRemove.Add(Spec.Handle);
+		}
+	}
+
+	for (int32 i = 0; i < AbilitiesToRemove.Num(); i++)
+		AbilitySystemComponent->ClearAbility(AbilitiesToRemove[i]);
+
+	AbilitySystemComponent->CharacterAbilitiesGiven = false;
+}
+
+void ADefaultPlayerCharacter::beginDead()
+{
+	RemoveCharacterAbilities();
+
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCharacterMovement()->Velocity = FVector(0);
+
+	//OnCharacterDied.ExecuteIfBound(this);
+	OnCharacterDied.Broadcast(this);
+
+	if (AbilitySystemComponent.IsValid())
+	{
+		AbilitySystemComponent->CancelAbilities();
+
+		FGameplayTagContainer EffectTagsToRemove;
+		EffectTagsToRemove.AddTag(EffectRemoveOnDeathTag);
+
+		int32 NumEffectsRemoved = AbilitySystemComponent->RemoveActiveEffectsWithTags(EffectTagsToRemove);
+		AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
+	}
 }
 
-void ADefaultPlayerCharacter::Server_PerformDead_Implementation()
+void ADefaultPlayerCharacter::FinishDying()
 {
-	PerformDead();
 }
 
-void ADefaultPlayerCharacter::Client_PerformDead_Implementation()
+float ADefaultPlayerCharacter::GetXP() const
 {
-	PerformDead();
+	if (Attribute.IsValid())
+		return Attribute->GetXP();
+
+	return 0.0f;
+}
+
+float ADefaultPlayerCharacter::GetCalculatedLevel() const
+{
+	if (Attribute.IsValid())
+		return Attribute->GetXP() / 100.0f; //fix later
+
+	return 0.0f;
+}
+
+float ADefaultPlayerCharacter::GetHealth() const
+{
+	if (Attribute.IsValid())
+		return Attribute->GetHealth();
+
+	return 0.0f;
+}
+
+float ADefaultPlayerCharacter::GetMaxHealth() const
+{
+	if (Attribute.IsValid())
+		return Attribute->GetMaxHealth();
+
+	return 0.0f;
+}
+
+float ADefaultPlayerCharacter::GetMana() const
+{
+	if (Attribute.IsValid())
+		return Attribute->GetMana();
+
+	return 0.0f;
+}
+
+float ADefaultPlayerCharacter::GetMaxMana() const
+{
+	if (Attribute.IsValid())
+		return Attribute->GetMaxMana();
+
+	return 0.0f;
+}
+
+void ADefaultPlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void ADefaultPlayerCharacter::AddCharacterAbilities()
+{
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || AbilitySystemComponent->CharacterAbilitiesGiven)
+		return;
+
+	for (TSubclassOf<UCharacterGameplayAbility>& StartupAbility : CharacterAbilities)
+	{
+		AbilitySystemComponent->GiveAbility( FGameplayAbilitySpec (
+			StartupAbility,
+			GetAbilityLevel(StartupAbility.GetDefaultObject()->AbilityID),
+			static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityInputID),
+			this
+		));
+	}
+
+	AbilitySystemComponent->CharacterAbilitiesGiven = true;
+}
+
+void ADefaultPlayerCharacter::InitializeAttributes()
+{
+	if (!AbilitySystemComponent.IsValid())
+		return;
+
+	if (!DefaultAttributes)
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s() Missing DefaultAttributes for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
+		return;
+	}
+
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributes, GetCalculatedLevel(), EffectContext);
+	if (NewHandle.IsValid())
+	{
+		FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent.Get());
+	}
+}
+
+void ADefaultPlayerCharacter::AddStartupEffects()
+{
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || AbilitySystemComponent->StartupEffectsApplied)
+		return;
+
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	for (TSubclassOf<UGameplayEffect> GameplayEffects : StartupEffects)
+	{
+		FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffects, GetCalculatedLevel(), EffectContext);
+		if (NewHandle.IsValid())
+		{
+			FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent.Get());
+		}
+	}
+
+	AbilitySystemComponent->StartupEffectsApplied = true;
+}
+
+void ADefaultPlayerCharacter::InitializeStartingValues(ADefaultPlayerState* State)
+{
+	if (!State) return;
+
+	AbilitySystemComponent = Cast<UDefaultAbilitySystemComponent>(State->GetAbilitySystemComponent());
+	State->GetAbilitySystemComponent()->InitAbilityActorInfo(State, this);
+
+	Attribute = State->GetAttributeSet();
+
+	AbilitySystemComponent->SetTagMapCount(DeadTag, 0);
+
+	SetHealth(GetMaxHealth());
+	SetMana(GetMaxMana());
+}
+
+void ADefaultPlayerCharacter::SetHealth(float Health)
+{
+	if (Attribute.IsValid())
+		Attribute->SetHealth(Health);
+}
+
+void ADefaultPlayerCharacter::SetMana(float Mana)
+{
+	if (Attribute.IsValid())
+		Attribute->SetHealth(Mana);
+}
+
+void ADefaultPlayerCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	ADefaultPlayerState* State = GetPlayerState<ADefaultPlayerState>();
+	if (!State) return;
+
+	InitializeStartingValues(State);
+	InitializeAttributes();
 }

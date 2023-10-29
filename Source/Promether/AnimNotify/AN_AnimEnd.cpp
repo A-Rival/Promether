@@ -9,11 +9,13 @@
 
 void UAN_AnimEnd::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
+	// TODO - animation state update fix
+	/*
 	ADefaultPlayerCharacter* MyCharacter = MeshComp->GetOwner<ADefaultPlayerCharacter>();
 	if (!MyCharacter) return;
 
 	ADefaultPlayerState* MyState = MyCharacter->GetPlayerState<ADefaultPlayerState>();
 	if (!MyState) return;
 	MyState->SetState(ECharacterState::Idle);
-
+	*/
 }

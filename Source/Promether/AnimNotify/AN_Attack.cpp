@@ -11,5 +11,5 @@ void UAN_Attack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Ani
 	ADefaultPlayerCharacter* MyCharacter = MeshComp->GetOwner<ADefaultPlayerCharacter>();
 	if (!MyCharacter) return;
 	
-	MyCharacter->Attack();
+	// MyCharacter->Attack(); Replace later
 }

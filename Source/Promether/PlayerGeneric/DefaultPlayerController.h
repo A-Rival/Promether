@@ -30,12 +30,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupInputComponent() override;
-
-	void Skill1();
-	void Skill2();
-	void Skill3();
-	void Skill4Triggered();
-	void Skill4Completed();
+	
 	void RuneSpell1();
 	void RuneSpell2();
 	void Ward();
@@ -78,29 +73,4 @@ public:
 	float MouseClickInterval;
 
 	FTimerHandle TimerHandle;
-
-private:
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputMappingContext> PlayerInputMapping;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputAction> Skill1Action;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputAction> Skill2Action;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputAction> Skill3Action;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputAction> Skill4Action;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputAction> RuneSpell1Action;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputAction> RuneSpell2Action;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputAction> WardAction;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputAction> BombAction;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputAction> ObjectSelectAction;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputAction> MoveAction;
 };

@@ -10,5 +10,5 @@ void UAN_Skill2::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Ani
 	ADefaultPlayerCharacter* MyCharacter = MeshComp->GetOwner<ADefaultPlayerCharacter>();
 	if (!MyCharacter) return; 
 	
-	MyCharacter->Skill2();
+	// MyCharacter->Skill2(); Replace later
 }

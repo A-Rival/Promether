@@ -143,8 +143,7 @@ FString ADeathmatch::InitNewPlayer(APlayerController* NewPlayerController, const
 	if (ADefaultPlayerState* NewPlayerState = NewPlayerController->GetPlayerState<ADefaultPlayerState>())
 	{
 		NewPlayerState->SetCharacterBPRef(GetGameInstance<UDefaultGameInstance>()->GetCharacterBPRef(Type));
-		//NewPlayerState->InitPlayerStats();
-		NewPlayerState->SetTeam(Team);
+		//NewPlayerState->SetTeam(Team); TODO - change to tag base
 	}
 
 	return ErrorMessage;

@@ -248,7 +248,7 @@ void ADefaultPlayerController::SetupInputComponent()
 
 void ADefaultPlayerController::Skill1()
 {
-	if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
+	if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 1)
 		return;
 	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill1Cost]))
 		return;
@@ -277,7 +277,7 @@ void ADefaultPlayerController::Skill1()
 
 void ADefaultPlayerController::Skill2()
 {
-	if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
+	if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 1)
 		return;
 	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill2Cost]))
 		return;
@@ -304,7 +304,7 @@ void ADefaultPlayerController::Skill2()
 
 void ADefaultPlayerController::Skill3()
 {
-	if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
+	if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 1)
 		return;
 	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill3Cost]))
 		return;
@@ -355,7 +355,7 @@ void ADefaultPlayerController::Skill4Triggered()
 
 	ACharacter* HitObject = nullptr;
 	FVector Location = GetPawn()->GetActorLocation();
-	Location.Z = 0;
+	//Location.Z = 0;
 
 	Server_StopMove();
 	Multicast_StopMove();
@@ -436,7 +436,7 @@ void ADefaultPlayerController::Move()
 
 	if (HitResult.GetActor() != GetPawn<AActor>()) //지금은 HitObject가 null이 아닐 경우 Attack()을 실행하는 코드지만, HitObject가 적 캐릭터일 때 실행으로 변경해야함
 	{
-		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0)
+		if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 1)
 			return;
 		if (!HitCharacter)
 		{

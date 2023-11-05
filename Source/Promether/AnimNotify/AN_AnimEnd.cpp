@@ -9,11 +9,16 @@
 
 void UAN_AnimEnd::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
+
 	ADefaultPlayerCharacter* MyCharacter = MeshComp->GetOwner<ADefaultPlayerCharacter>();
 	if (!MyCharacter) return;
 
 	ADefaultPlayerState* MyState = MyCharacter->GetPlayerState<ADefaultPlayerState>();
 	if (!MyState) return;
 	MyState->SetState(ECharacterState::Idle);
+	MyState->Stats[(uint8)EStats::Attackable] = 0;
+	MyState->Stats[(uint8)EStats::Skillusable] = 0;
+	MyState->Stats[(uint8)EStats::Movable] = 0;
+	
 
 }

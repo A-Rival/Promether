@@ -330,29 +330,22 @@ void ADefaultPlayerController::Skill3()
 }
 
 void ADefaultPlayerController::Skill4Triggered()
-{
-	if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 1)//차지가 1(false)일 때
+{//쿨타임 체크 넣기
+	
+   if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 0)//차지가 true가 아닐 때
 	{
-		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
-			return;
-		if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]))
-			return;
-		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost];
-		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] = 0;// 수치를 계산하고 charge를 true(0)로 변경
-	}
-	else if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 2) //차지가 2(never)일 때
-	{
-		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
-			return;
-		if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]))
-			return;
-		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]; // 그냥 수치 계산만 실행
-	}
-	EndAttack();
-	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] = 1;
-	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] = 1;
-	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Movable] = 1;
-
+	   if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0) {
+		   GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
+		   return;
+	   }
+		  
+	   if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost])) {
+		   GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
+		   return;
+	   }
+		   
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost];
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] = 1;
 	ACharacter* HitObject = nullptr;
 	FVector Location = GetPawn()->GetActorLocation();
 	//Location.Z = 0;
@@ -366,6 +359,30 @@ void ADefaultPlayerController::Skill4Triggered()
 	UE_LOG(LogTemp, Warning, TEXT("Skill4 Triggered"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
 	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Triggered);
+
+	}
+
+   if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 0) {
+	   EndAttack();
+	   GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] = 1;
+	   GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] = 1;
+	   GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Movable] = 1;
+
+	   ACharacter* HitObject = nullptr;
+	   FVector Location = GetPawn()->GetActorLocation();
+	   //Location.Z = 0;
+
+	   Server_StopMove();
+	   Multicast_StopMove();
+
+	   Multicast_SetRotation(GetMouseHitLocation());
+	   Server_SetRotation(GetMouseHitLocation());
+
+	   UE_LOG(LogTemp, Warning, TEXT("Skill4 Triggered"));
+	   GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
+	   GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Triggered);
+
+   }
 }
 
 void ADefaultPlayerController::Skill4Completed()

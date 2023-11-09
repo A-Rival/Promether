@@ -23,6 +23,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UProjectileMovementComponent* ProjectileMovement;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	AActor* Target;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

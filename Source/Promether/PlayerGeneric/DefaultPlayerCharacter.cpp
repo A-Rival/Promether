@@ -56,11 +56,11 @@ void ADefaultPlayerCharacter::Tick(float DeltaTime)
 
 void ADefaultPlayerCharacter::Attack_Implementation()
 {
-	Client_Attack();
+	NetMulticast_Attack();
 	BP_Attack();
 }
 
-void ADefaultPlayerCharacter::Client_Attack_Implementation()
+void ADefaultPlayerCharacter::NetMulticast_Attack_Implementation()
 {
 	BP_Attack();
 }

@@ -26,8 +26,8 @@ public:
 	//Override me
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_Attack();
-	UFUNCTION(Client, Reliable)
-	void Client_Attack();
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_Attack();
 
 	UFUNCTION(BlueprintNativeEvent)
 	float	TakeDamage(	float Damage,

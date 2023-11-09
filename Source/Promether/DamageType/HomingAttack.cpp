@@ -34,7 +34,8 @@ void AHomingAttack::BeginPlay()
 		return;
 	}
 
-	ProjectileMovement->HomingTargetComponent = State->GetCurrentAttackTarget()->GetRootComponent();
+	Target = State->GetCurrentAttackTarget();
+	ProjectileMovement->HomingTargetComponent = Target->GetRootComponent();
 }
 
 // Called every frame

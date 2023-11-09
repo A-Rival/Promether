@@ -100,13 +100,13 @@ float ADefaultPlayerCharacter::TakeDamage_Implementation(float DamageAmount, str
 	{
 		UE_LOG(LogTemp, Warning, TEXT("DamageType : BaseAttack")); 
 
-		UpdatedHealth = State->Stats[(uint8)EStats::Health] - AttackerState->Stats[(uint8)EStats::AttackDamage] * ADDamageMultiplier;
+		UpdatedHealth = State->Stats[(uint8)EStats::Health] - DamageAmount * ADDamageMultiplier;
 	}
 	else if (Cast<UAPDamage>(DamageEvent.DamageTypeClass->GetDefaultObject()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("DamageType : APDamage"));
 
-		UpdatedHealth = State->Stats[(uint8)EStats::Health] - AttackerState->Stats[(uint8)EStats::AbilityPower] * APDamageMultiplier;
+		UpdatedHealth = State->Stats[(uint8)EStats::Health] - DamageAmount * APDamageMultiplier;
 	}
 
 	if (UpdatedHealth < 0 || UpdatedHealth < 0.1 )

@@ -331,22 +331,22 @@ void ADefaultPlayerController::Skill3()
 
 void ADefaultPlayerController::Skill4Triggered()
 {
-	if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 1)//������ 1(false)�� ��
+	if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 1)
 	{
 		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
 			return;
 		if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]))
 			return;
 		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost];
-		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] = 0;// ��ġ�� ����ϰ� charge�� true(0)�� ����
+		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] = 0;
 	}
-	else if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 2) //������ 2(never)�� ��
+	else if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 2)
 	{
 		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
 			return;
 		if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]))
 			return;
-		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]; // �׳� ��ġ ��길 ����
+		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost];
 	}
 	EndAttack();
 	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] = 1;
@@ -446,10 +446,10 @@ void ADefaultPlayerController::Move()
 	ObjectSelect();
 	
 	if (GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget() != GetPawn<AActor>() &&
-		Cast<ADefaultPlayerCharacter>(GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget())) //������ �ƴϰ� ������ ������ ���(���̵� �Ʊ��̵�)�� ��
+		Cast<ADefaultPlayerCharacter>(GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget()))
 	{
 		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0) return;
-		BeginAttack(); //HitObject�� ������� BeginAttack ����
+		BeginAttack();
 	}
 	else 
 	{
@@ -469,8 +469,6 @@ void ADefaultPlayerController::Multicast_SetRotation_Implementation(FVector Mous
 	Location.Z = 0;
 
 	FRotator NewRotation = (MouseHitLocation - Location).Rotation();
-
-	// ���� X���� �����ϰ� �ʹٸ� �Ʒ��� ���� �ش� ���� �����մϴ�.
 	
 	NewRotation.Pitch = 0;
 

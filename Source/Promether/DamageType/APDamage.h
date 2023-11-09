@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/DamageType.h"
-#include "ApDamage.generated.h"
+#include "APDamage.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROMETHER_API UApDamage : public UDamageType
+class PROMETHER_API UAPDamage : public UDamageType
 {
 	GENERATED_BODY()
 	

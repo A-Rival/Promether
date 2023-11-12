@@ -65,64 +65,60 @@ float ADefaultPlayerCharacter::TakeDamage_Implementation(float DamageAmount, str
 {
 	float ReturnValue = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	if (HasAuthority())
+	ADefaultPlayerState* State = GetPlayerState<ADefaultPlayerState>();
+	if (!State) return ReturnValue;
+
+	if (!Cast<APawn>(DamageCauser)) return ReturnValue;
+
+	ADefaultPlayerState* AttackerState = Cast<APawn>(DamageCauser)->GetPlayerState<ADefaultPlayerState>();
+	if (!AttackerState) return ReturnValue;
+
+	float ADDamageMultiplier = 0;
+	float APDamageMultiplier = 0;
+
+	if (State->Stats[(uint8)EStats::Armor] >= 0)
+		ADDamageMultiplier = 100 / (100 + State->Stats[(uint8)EStats::Armor]);
+	else
+		ADDamageMultiplier = 2 - 100 / (100 - State->Stats[(uint8)EStats::Armor]);
+
+	if (State->Stats[(uint8)EStats::MagicResistance] >= 0)
+		APDamageMultiplier = 100 / (100 + State->Stats[(uint8)EStats::MagicResistance]);
+	else
+		APDamageMultiplier = 2 - 100 / (100 - State->Stats[(uint8)EStats::MagicResistance]);
+
+
+	UE_LOG(LogTemp, Warning, TEXT("%s : ADDamageMultiplier : %f CalculatedDamage : %f"), *DamageCauser->GetName(), ADDamageMultiplier, DamageAmount * ADDamageMultiplier);
+	UE_LOG(LogTemp, Warning, TEXT("%s : APDamageMultiplier : %f CalculatedDamage : %f"), *DamageCauser->GetName(), APDamageMultiplier, DamageAmount * APDamageMultiplier);
+
+	float UpdatedHealth = 0;
+
+	if (Cast<UBaseAttack>(DamageEvent.DamageTypeClass->GetDefaultObject()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TakeDamage Called On Server"));
+		UE_LOG(LogTemp, Warning, TEXT("DamageType : BaseAttack"));
+
+		UpdatedHealth = State->Stats[(uint8)EStats::Health] - DamageAmount * ADDamageMultiplier;
+	}
+	else 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DamageType : APDamage"));
+
+		UpdatedHealth = State->Stats[(uint8)EStats::Health] - DamageAmount * APDamageMultiplier;
+	}
+
+	if (UpdatedHealth < 0 || UpdatedHealth < 0.1)
+	{
+		State->Stats[(uint8)EStats::Health] = 0;
+		
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TakeDamage Called On Client"));
+		State->Stats[(uint8)EStats::Health] = UpdatedHealth;
 	}
 
-	if (HasAuthority())
-	{
-		if (ADefaultPlayerState* MyState = this->GetInstigatorController()->GetPlayerState<ADefaultPlayerState>())
-		{
-			if (ADefaultPlayerState* EventInstigatorState = EventInstigator->GetPlayerState<ADefaultPlayerState>())
-			{
-				float ADDamageMultiplier = 0;
-				float APDamageMultiplier = 0;
+	UE_LOG(LogTemp, Warning, TEXT("Current Health : %f"), State->Stats[(uint8)EStats::Health]);
+	UE_LOG(LogTemp, Warning, TEXT("U Health : %f"), UpdatedHealth);
 
-				if (MyState->Stats[(uint8)EStats::Armor] >= 0)
-					ADDamageMultiplier = 100 / (100 + MyState->Stats[(uint8)EStats::Armor]);
-				else
-					ADDamageMultiplier = 2 - 100 / (100 - MyState->Stats[(uint8)EStats::Armor]);
-
-				if (MyState->Stats[(uint8)EStats::MagicResistance] >= 0)
-					APDamageMultiplier = 100 / (100 + MyState->Stats[(uint8)EStats::MagicResistance]);
-				else
-					APDamageMultiplier = 2 - 100 / (100 - MyState->Stats[(uint8)EStats::MagicResistance]);
-
-
-				UE_LOG(LogTemp, Warning, TEXT("%s : ADDamageMultiplier : %f CalculatedDamage : %f"), *DamageCauser->GetName(), ADDamageMultiplier, DamageAmount * ADDamageMultiplier);
-				UE_LOG(LogTemp, Warning, TEXT("%s : APDamageMultiplier : %f CalculatedDamage : %f"), *DamageCauser->GetName(), APDamageMultiplier, DamageAmount * APDamageMultiplier);
-
-				if (Cast<UBaseAttack>(DamageEvent.DamageTypeClass->GetDefaultObject()))
-				{
-					UE_LOG(LogTemp, Warning, TEXT("DamageType : BaseAttack")); 
-
-					float UpdatedHealth = MyState->Stats[(uint8)EStats::Health] - EventInstigatorState->Stats[(uint8)EStats::AttackDamage] * ADDamageMultiplier;
-					if (UpdatedHealth < 0)
-					{
-						MyState->Stats[(uint8)EStats::Health] = 0;
-					}
-					else
-					{
-						MyState->Stats[(uint8)EStats::Health] = UpdatedHealth;
-					}
-
-					UE_LOG(LogTemp, Warning, TEXT("Current Health : %f"), MyState->Stats[(uint8)EStats::Health]);
-				}
-				
-			}
-		}
-
-		return ReturnValue;
-	}
-	else
-	{
-		return -1.0f;
-	}
+	return ReturnValue;
 }
 
 

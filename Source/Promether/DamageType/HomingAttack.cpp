@@ -12,11 +12,11 @@ AHomingAttack::AHomingAttack()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	ProjectileMovement->InitialSpeed = 200;
-	ProjectileMovement->MaxSpeed = 200;
+	ProjectileMovement->InitialSpeed = 0;
+	ProjectileMovement->MaxSpeed = 1000;
 	ProjectileMovement->ProjectileGravityScale = 0;
 	ProjectileMovement->bIsHomingProjectile = true;
-	ProjectileMovement->HomingAccelerationMagnitude = 200;
+	ProjectileMovement->HomingAccelerationMagnitude = 10000;
 	ProjectileMovement->Velocity = { 0, 0, 0 };
 	ProjectileMovement->bRotationFollowsVelocity = true;
 }
@@ -31,6 +31,7 @@ void AHomingAttack::BeginPlay()
 	if (!State->GetCurrentAttackTarget())
 	{
 		UE_LOG(LogTemp, Error, TEXT("No Target"));
+		Destroy();
 		return;
 	}
 

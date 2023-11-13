@@ -1,2 +1,0 @@
-*.uasset filter=lfs diff=UE_Diff merge=UE_Merge -text
-*.umap filter=lfs diff=UE_Diff merge=UE_Merge -text

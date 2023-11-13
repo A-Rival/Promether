@@ -22,12 +22,13 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable, Server, Reliable)
-		void Attack();
+	void Attack();
 	//Override me
 	UFUNCTION(BlueprintImplementableEvent)
-		void BP_Attack();
+	void BP_Attack();
 	UFUNCTION(NetMulticast, Reliable)
-		void NetMulticast_Attack();
+	void NetMulticast_Attack();
+
 	UFUNCTION(BlueprintNativeEvent)
 	float	TakeDamage(	float Damage,
 								struct FDamageEvent const& DamageEvent,
@@ -35,7 +36,13 @@ public:
 								AActor* DamageCauser )					override;
 
 
+	void PerformDead();
 
+	UFUNCTION(Client, Reliable)
+	void Client_PerformDead();
+
+	UFUNCTION(Server, Reliable)
+	void Server_PerformDead();
 
 
 	UFUNCTION(BlueprintCallable, Server, Reliable)

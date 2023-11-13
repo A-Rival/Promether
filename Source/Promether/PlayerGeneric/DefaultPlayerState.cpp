@@ -6,6 +6,8 @@ ADefaultPlayerState::ADefaultPlayerState()
 	CharacterBPRef = nullptr;;
 	Team = TeamType::Null;
 	State = ECharacterState::Idle;
+
+	NetUpdateFrequency = 100.0f;
 }
 
 void ADefaultPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -22,8 +24,10 @@ void ADefaultPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	DOREPLIFETIME(ADefaultPlayerState, State);
 	DOREPLIFETIME(ADefaultPlayerState, AttackType);
-	//DOREPLIFETIME(ADefaultPlayerState, StatusEffectObject);
 	DOREPLIFETIME(ADefaultPlayerState, PlayerCamera);
+
+	DOREPLIFETIME(ADefaultPlayerState, CurrentAttackTarget);
+	DOREPLIFETIME(ADefaultPlayerState, PreviousAttackTarget);
 }
 
 void ADefaultPlayerState::InitPlayerStats_Implementation(const TArray<float>& StatsValue, const TArray<float>& CooldownDurationValue)
@@ -32,7 +36,6 @@ void ADefaultPlayerState::InitPlayerStats_Implementation(const TArray<float>& St
 	Stats.Append(StatsValue);
 	CooldownDuration.Append(CooldownDurationValue);
 	MaxCooldownDuration.Append(CooldownDurationValue);
-
 
 	for (float Value : StatsValue)
 	{
@@ -63,4 +66,36 @@ void ADefaultPlayerState::SetAttackType_Implementation(CooldownType Value)
 int32 ADefaultPlayerState::GetCharacterLevel() const
 {
 	return int32();
+}
+
+void ADefaultPlayerState::SetCurrentAttackTarget(AActor* Target)
+{
+	Server_SetCurrentAttackTarget(Target);
+	Client_SetCurrentAttackTarget(Target);
+}
+
+void ADefaultPlayerState::Server_SetCurrentAttackTarget_Implementation(AActor* Target)
+{
+	CurrentAttackTarget = Target;
+}
+
+void ADefaultPlayerState::Client_SetCurrentAttackTarget_Implementation(AActor* Target)
+{
+	CurrentAttackTarget = Target;
+}
+
+void ADefaultPlayerState::SetPreviousAttackTarget(AActor* Target)
+{
+	Server_SetPreviousAttackTarget(Target);
+	Client_SetPreviousAttackTarget(Target);
+}
+
+void ADefaultPlayerState::Server_SetPreviousAttackTarget_Implementation(AActor* Target)
+{
+	PreviousAttackTarget = Target;
+}
+
+void ADefaultPlayerState::Client_SetPreviousAttackTarget_Implementation(AActor* Target)
+{
+	PreviousAttackTarget = Target;
 }

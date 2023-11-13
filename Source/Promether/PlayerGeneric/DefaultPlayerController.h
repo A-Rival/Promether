@@ -77,9 +77,7 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	float MouseClickInterval;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "My Actor")
-	AActor* HitTarget;
-
+	FTimerHandle TimerHandle;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Input")

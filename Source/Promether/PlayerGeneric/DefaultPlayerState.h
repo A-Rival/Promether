@@ -62,6 +62,23 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int32			GetCharacterLevel()									const;
+
+	UFUNCTION(BlueprintCallable)
+	AActor* GetCurrentAttackTarget() const { return CurrentAttackTarget; };
+	UFUNCTION(BlueprintCallable)
+	AActor* GetPreviousAttackTarget() const { return PreviousAttackTarget; };
+
+	void SetCurrentAttackTarget(AActor* Target);
+	UFUNCTION(Server, Reliable)
+	void Server_SetCurrentAttackTarget(AActor* Target);
+	UFUNCTION(Client, Reliable)
+	void Client_SetCurrentAttackTarget(AActor* Target);
+
+	void SetPreviousAttackTarget(AActor* Target);
+	UFUNCTION(Server, Reliable)
+	void Server_SetPreviousAttackTarget(AActor* Target);
+	UFUNCTION(Client, Reliable)
+	void Client_SetPreviousAttackTarget(AActor* Target);
 	
 	UPROPERTY(Replicated, Transient, EditAnywhere, BlueprintReadWrite)
 	TArray<float> Stats;
@@ -73,6 +90,7 @@ public:
 	UPROPERTY(Replicated, Transient, BlueprintReadWrite)
 	TArray<float> MaxCooldownDuration;
 
+	
 private:
 	UPROPERTY(Replicated, Transient)
 	UClass*			CharacterBPRef;
@@ -84,9 +102,11 @@ private:
 	UPROPERTY(Replicated, Transient)
 	CooldownType AttackType;
 
-	//UPROPERTY(Replicated, Transient)
-	//TMap<FUniqueObjectID, UStatusEffect> StatusEffectObject;
-
 	UPROPERTY(Replicated, Transient)
 	AActor* PlayerCamera;
+
+	UPROPERTY(Replicated, Transient)
+	AActor* CurrentAttackTarget;
+	UPROPERTY(Replicated, Transient)
+	AActor* PreviousAttackTarget;
 };

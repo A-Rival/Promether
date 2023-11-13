@@ -105,7 +105,7 @@ void ADefaultPlayerController::Server_SpawnPlayerCamera_Implementation()
 
 void ADefaultPlayerController::SetACharacterOutlineColor(ACharacter* Target, bool Visible)
 {
-	if (HasAuthority()) return;
+	if (!Target) return;
 
 	ADefaultPlayerState* State = Target->GetPlayerState<ADefaultPlayerState>();
 	if (!State)
@@ -330,9 +330,9 @@ void ADefaultPlayerController::Skill3()
 }
 
 void ADefaultPlayerController::Skill4Triggered()
-{//ÄðÅ¸ÀÓ Ã¼Å© ³Ö±â
+{//ï¿½ï¿½Å¸ï¿½ï¿½ Ã¼Å© ï¿½Ö±ï¿½
 	
-   if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 0)//Â÷Áö°¡ true°¡ ¾Æ´Ò ¶§
+   if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 0)//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ trueï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½
 	{
 	   if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0) {
 		   GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
@@ -422,48 +422,51 @@ void ADefaultPlayerController::Bomb()
 
 void ADefaultPlayerController::ObjectSelect()
 {
+	ADefaultPlayerState* State = GetPlayerState<ADefaultPlayerState>();
+	if (!State) return;
+
 	FHitResult HitResult;
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
 
 	GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult);
 
 	ACharacter* HitObject = Cast<ACharacter>(HitResult.GetActor());
-	if (!HitObject) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *HitObject->GetName());
-	SetACharacterOutlineColor(HitObject, true);
+	if (!HitObject)
+	{
+		SetACharacterOutlineColor(Cast<ACharacter>(State->GetPreviousAttackTarget()), false);
+		State->SetPreviousAttackTarget(nullptr);
+		State->SetCurrentAttackTarget(nullptr);
+		return;
+	}
+
+	if (State->GetPreviousAttackTarget() != HitResult.GetActor())
+	{
+		SetACharacterOutlineColor(Cast<ACharacter>(State->GetPreviousAttackTarget()), false);
+
+		State->SetPreviousAttackTarget(HitResult.GetActor());
+		State->SetCurrentAttackTarget(HitResult.GetActor());
+
+		SetACharacterOutlineColor(HitObject, true);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *State->GetCurrentAttackTarget()->GetName());
+
+	FString Name = HitResult.GetActor()->GetName();
+	APlayerState* TargetState = Cast<APawn>(HitResult.GetActor())->GetPlayerState();
 }
-
 
 void ADefaultPlayerController::Move()
 {
 	EndAttack();
-	FHitResult HitResult;
-	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
-
-	GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult); 
-	ACharacter* HitCharacter = Cast<ACharacter>(HitResult.GetActor()); //¿ÀºêÁ§Æ®¸¦ °¡Á®¿Í HitCharactor¿¡ ÀúÀå<<ÃßÈÄ Àû Ä³¸¯ÅÍÀÏ¶§¸¸ ÀúÀåÀ¸·Î º¯°æÇØ¾ßÇÔ
-	HitTarget = HitResult.GetActor();
-
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *HitResult.GetActor()->GetName());
-
-	if (HitResult.GetActor() != GetPawn<AActor>()) //Áö±ÝÀº HitObject°¡ nullÀÌ ¾Æ´Ò °æ¿ì Attack()À» ½ÇÇàÇÏ´Â ÄÚµåÁö¸¸, HitObject°¡ Àû Ä³¸¯ÅÍÀÏ ¶§ ½ÇÇàÀ¸·Î º¯°æÇØ¾ßÇÔ
+	ObjectSelect();
+	
+	if (GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget() != GetPawn<AActor>() &&
+		Cast<ADefaultPlayerCharacter>(GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget()))
 	{
-		if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 1)
-			return;
-		if (!HitCharacter)
-		{
-			FVector Destination = GetMouseHitLocation();
-			GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
-			SimpleMoveToLocation(this, Destination);
-			this->MoveToLocation(Destination);
-			return;
-		}
-		BeginAttack(); //HitObject¸¦ ´ë»óÀ¸·Î BeginAttack ½ÇÇà
+		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0) return;
+		BeginAttack();
 	}
 	else 
 	{
@@ -483,8 +486,6 @@ void ADefaultPlayerController::Multicast_SetRotation_Implementation(FVector Mous
 	Location.Z = 0;
 
 	FRotator NewRotation = (MouseHitLocation - Location).Rotation();
-
-	// ¸¸¾à XÃàÀ» °íÁ¤ÇÏ°í ½Í´Ù¸é ¾Æ·¡¿Í °°ÀÌ ÇØ´ç °ªÀ» ¼³Á¤ÇÕ´Ï´Ù.
 	
 	NewRotation.Pitch = 0;
 
@@ -517,7 +518,10 @@ void ADefaultPlayerController::Multicast_StopMove_Implementation()
 FVector ADefaultPlayerController::GetMouseHitLocation()
 {
 	FHitResult HitResult;
-	GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, HitResult);
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
+
+	GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult);
 	HitResult.Location.Z = 0;
 
 	//UE_LOG(LogTemp, Warning, TEXT("Client%d MoveTo : (%f, %f)"), GPlayInEditorID, HitResult.Location.X, HitResult.Location.Y);
@@ -646,39 +650,36 @@ void ADefaultPlayerController::OnMoveCompleted(FAIRequestID RequestID, const FPa
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
 }
 
-FTimerHandle TimerHandle;
-
 void ADefaultPlayerController::BeginAttack()
 {
-		GetWorldTimerManager().SetTimer(TimerHandle, this, &ADefaultPlayerController::RepeatedAttack, 0.1f, true);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ADefaultPlayerController::RepeatedAttack, 0.1f, true);
 }
 
 void ADefaultPlayerController::EndAttack()
 {
-
 	GetWorldTimerManager().ClearTimer(TimerHandle);
 }
 
 void ADefaultPlayerController::RepeatedAttack()
 {
-	if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0)
-		return;
 	Attack();
 }
 
-
-
 void ADefaultPlayerController::Attack()
 {
-	
+	if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0)
+		return;
+
 	float MinDistance = GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats:: AttackRange];
-	FVector Destination = HitTarget->GetActorLocation(); // HitObjectÀÇ À§Ä¡¸¦ ¸ñÀûÁö·Î ¼³Á¤
+
+	if (!GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget()) return;
+
+	FVector Destination = GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget()->GetActorLocation(); // HitObjectï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 	if (FVector::Dist(Destination, GetPawn()->GetActorLocation()) <= MinDistance)
 	{
 		if ((GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Attack] != 0))
 			return;
-
 		
 		FVector Location = GetPawn()->GetActorLocation();
 		Location.X = 0;
@@ -688,7 +689,6 @@ void ADefaultPlayerController::Attack()
 
 		Multicast_SetRotation(Destination);
 		Server_SetRotation(Destination);
-		
 
 		UE_LOG(LogTemp, Warning, TEXT("Attack"));
 		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
@@ -698,12 +698,8 @@ void ADefaultPlayerController::Attack()
 	{
 		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Moving);
 		SimpleMoveToLocation(this, Destination);
-			
-		
-
 		this->MoveToLocation(Destination);
 	}
-	SetTarget();
 }
 
 void ADefaultPlayerController::MoveToLocation_Implementation(FVector Location)

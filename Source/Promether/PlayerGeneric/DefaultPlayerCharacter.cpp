@@ -3,8 +3,10 @@
 
 #include "DefaultPlayerCharacter.h"
 #include "DefaultPlayerState.h"
+#include "../DefaultAIController.h"
 #include "Engine/DamageEvents.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/CapsuleComponent.h"
 
 ADefaultPlayerCharacter::ADefaultPlayerCharacter()
 {
@@ -12,6 +14,9 @@ ADefaultPlayerCharacter::ADefaultPlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	SetCanBeDamaged(true);
 	bUseControllerRotationYaw = false;
+
+	AIControllerClass = ADefaultAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	CameraSpringArm->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.0f), FRotator(-45.0f, 0.0f, 0.0f));
@@ -49,11 +54,10 @@ void ADefaultPlayerCharacter::Tick(float DeltaTime)
 	*/
 }
 
-
-
 void ADefaultPlayerCharacter::Attack_Implementation()
 {
 	NetMulticast_Attack();
+	BP_Attack();
 }
 
 void ADefaultPlayerCharacter::NetMulticast_Attack_Implementation()
@@ -105,10 +109,11 @@ float ADefaultPlayerCharacter::TakeDamage_Implementation(float DamageAmount, str
 		UpdatedHealth = State->Stats[(uint8)EStats::Health] - DamageAmount * APDamageMultiplier;
 	}
 
-	if (UpdatedHealth < 0 || UpdatedHealth < 0.1)
+	if (UpdatedHealth < 0 || UpdatedHealth < 0.1 )
 	{
 		State->Stats[(uint8)EStats::Health] = 0;
-		
+		Server_PerformDead();
+		Client_PerformDead();
 	}
 	else
 	{
@@ -116,12 +121,9 @@ float ADefaultPlayerCharacter::TakeDamage_Implementation(float DamageAmount, str
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Current Health : %f"), State->Stats[(uint8)EStats::Health]);
-	UE_LOG(LogTemp, Warning, TEXT("U Health : %f"), UpdatedHealth);
 
 	return ReturnValue;
 }
-
-
 
 void ADefaultPlayerCharacter::Skill1_Implementation()
 {
@@ -201,4 +203,24 @@ void ADefaultPlayerCharacter::Skill7_Implementation()
 void ADefaultPlayerCharacter::NetMulticast_Skill7_Implementation()
 {
 	BP_Skill7();
+}
+
+void ADefaultPlayerCharacter::PerformDead()
+{
+	ADefaultPlayerState* State = GetPlayerState<ADefaultPlayerState>();
+	if (!State) return;
+
+	State->SetState(ECharacterState::Dead);
+	GetCapsuleComponent()->SetGenerateOverlapEvents(false);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void ADefaultPlayerCharacter::Server_PerformDead_Implementation()
+{
+	PerformDead();
+}
+
+void ADefaultPlayerCharacter::Client_PerformDead_Implementation()
+{
+	PerformDead();
 }

@@ -85,9 +85,9 @@ public:
 	UPROPERTY(Replicated, Transient, EditAnywhere, BlueprintReadWrite)
 	TArray<float> MaxStats;
 
-	UPROPERTY(Replicated, Transient, BlueprintReadWrite)
+	UPROPERTY(Replicated, Transient, EditAnywhere, BlueprintReadWrite)
 	TArray<float> CooldownDuration;
-	UPROPERTY(Replicated, Transient, BlueprintReadWrite)
+	UPROPERTY(Replicated, Transient, EditAnywhere, BlueprintReadWrite)
 	TArray<float> MaxCooldownDuration;
 
 	

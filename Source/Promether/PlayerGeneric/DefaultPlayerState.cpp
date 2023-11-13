@@ -18,6 +18,7 @@ void ADefaultPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(ADefaultPlayerState, Team);
 
 	DOREPLIFETIME(ADefaultPlayerState, CooldownDuration);
+	DOREPLIFETIME(ADefaultPlayerState, MaxCooldownDuration);
 
 	DOREPLIFETIME(ADefaultPlayerState, Stats);
 	DOREPLIFETIME(ADefaultPlayerState, MaxStats);
@@ -35,7 +36,11 @@ void ADefaultPlayerState::InitPlayerStats_Implementation(const TArray<float>& St
 	MaxStats.Append(StatsValue);
 	Stats.Append(StatsValue);
 	CooldownDuration.Append(CooldownDurationValue);
-	MaxCooldownDuration.Append(CooldownDurationValue);
+
+	for (float Value : CooldownDurationValue)
+	{
+		MaxCooldownDuration.Add(0.0f);
+	}
 
 	for (float Value : StatsValue)
 	{

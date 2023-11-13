@@ -248,6 +248,11 @@ void ADefaultPlayerController::SetupInputComponent()
 
 void ADefaultPlayerController::Skill1()
 {
+	if (!GetWorld())
+		return;
+	if (GetWorld()->GetUnpausedTimeSeconds() - GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Skill1]
+		<= GetPlayerState<ADefaultPlayerState>()->MaxCooldownDuration[(uint8)CooldownType::Skill1])
+		return;
 	if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 1)
 		return;
 	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill1Cost]))
@@ -277,6 +282,11 @@ void ADefaultPlayerController::Skill1()
 
 void ADefaultPlayerController::Skill2()
 {
+	if (!GetWorld())
+		return;
+	if (GetWorld()->GetUnpausedTimeSeconds() - GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Skill2]
+		<= GetPlayerState<ADefaultPlayerState>()->MaxCooldownDuration[(uint8)CooldownType::Skill2])
+		return;
 	if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 1)
 		return;
 	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill2Cost]))
@@ -304,6 +314,11 @@ void ADefaultPlayerController::Skill2()
 
 void ADefaultPlayerController::Skill3()
 {
+	if (!GetWorld())
+		return;
+	if (GetWorld()->GetUnpausedTimeSeconds() - GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Skill3]
+		<= GetPlayerState<ADefaultPlayerState>()->MaxCooldownDuration[(uint8)CooldownType::Skill3])
+		return;
 	if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 1)
 		return;
 	if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill3Cost]))
@@ -334,6 +349,11 @@ void ADefaultPlayerController::Skill4Triggered()
 	
    if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 0)//������ true�� �ƴ� ��
 	{
+	   if (!GetWorld())
+		   return;
+	   if (GetWorld()->GetUnpausedTimeSeconds() - GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Skill4Triggered]
+		   <= GetPlayerState<ADefaultPlayerState>()->MaxCooldownDuration[(uint8)CooldownType::Skill4Triggered])
+		   return;
 	   if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0) {
 		   GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
 		   return;

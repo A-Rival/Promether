@@ -330,29 +330,22 @@ void ADefaultPlayerController::Skill3()
 }
 
 void ADefaultPlayerController::Skill4Triggered()
-{
-	if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 1)
+{//��Ÿ�� üũ �ֱ�
+	
+   if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 0)//������ true�� �ƴ� ��
 	{
-		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
-			return;
-		if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]))
-			return;
-		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost];
-		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] = 0;
-	}
-	else if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 2)
-	{
-		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0)
-			return;
-		if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost]))
-			return;
-		GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost];
-	}
-	EndAttack();
-	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] = 1;
-	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] = 1;
-	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Movable] = 1;
-
+	   if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0) {
+		   GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
+		   return;
+	   }
+		  
+	   if (!(GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] >= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost])) {
+		   GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
+		   return;
+	   }
+		   
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Mana] -= GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skill4Cost];
+	GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] = 1;
 	ACharacter* HitObject = nullptr;
 	FVector Location = GetPawn()->GetActorLocation();
 	//Location.Z = 0;
@@ -366,6 +359,30 @@ void ADefaultPlayerController::Skill4Triggered()
 	UE_LOG(LogTemp, Warning, TEXT("Skill4 Triggered"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
 	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Triggered);
+
+	}
+
+   if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 0) {
+	   EndAttack();
+	   GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] = 1;
+	   GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] = 1;
+	   GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Movable] = 1;
+
+	   ACharacter* HitObject = nullptr;
+	   FVector Location = GetPawn()->GetActorLocation();
+	   //Location.Z = 0;
+
+	   Server_StopMove();
+	   Multicast_StopMove();
+
+	   Multicast_SetRotation(GetMouseHitLocation());
+	   Server_SetRotation(GetMouseHitLocation());
+
+	   UE_LOG(LogTemp, Warning, TEXT("Skill4 Triggered"));
+	   GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
+	   GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Triggered);
+
+   }
 }
 
 void ADefaultPlayerController::Skill4Completed()

@@ -486,11 +486,12 @@ void ADefaultPlayerController::Move()
 {
 	EndAttack();
 	ObjectSelect();
-	
+
 	if (GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget() != GetPawn<AActor>() &&
 		Cast<ADefaultPlayerCharacter>(GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget()))
 	{
 		if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Attackable] == 0) return;
+
 		BeginAttack();
 	}
 	else 
@@ -705,6 +706,8 @@ void ADefaultPlayerController::Attack()
 	{
 		if ((GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Attack] != 0))
 			return;
+
+		UE_LOG(LogTemp, Warning, TEXT("asdf:%s"), *GetPlayerState<ADefaultPlayerState>()->GetCurrentAttackTarget()->GetName());
 		
 		FVector Location = GetPawn()->GetActorLocation();
 		Location.X = 0;

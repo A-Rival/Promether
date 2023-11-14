@@ -39,8 +39,10 @@ void ADefaultPlayerState::InitPlayerStats_Implementation(const TArray<float>& St
 
 	for (float Value : CooldownDurationValue)
 	{
-		CooldownDuration.Add(0.0f);
+		CooldownDuration.Add(-100000.0f);
 	}
+
+	CooldownDuration[(uint8)CooldownType::Attack] = 0;
 
 	for (float Value : StatsValue)
 	{

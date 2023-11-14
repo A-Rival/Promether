@@ -133,7 +133,7 @@ FString ADeathmatch::InitNewPlayer(APlayerController* NewPlayerController, const
 	//DebugPerpose
 	if (Type == CharacterType::Lukriel)
 	{
-		Type = CharacterType::Allium;
+		Type = CharacterType::Riana;
 	}
 	if (Team == TeamType::Null)
 	{

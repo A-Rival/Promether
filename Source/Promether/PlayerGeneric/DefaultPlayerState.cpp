@@ -35,11 +35,11 @@ void ADefaultPlayerState::InitPlayerStats_Implementation(const TArray<float>& St
 {
 	MaxStats.Append(StatsValue);
 	Stats.Append(StatsValue);
-	CooldownDuration.Append(CooldownDurationValue);
+	MaxCooldownDuration.Append(CooldownDurationValue);
 
 	for (float Value : CooldownDurationValue)
 	{
-		MaxCooldownDuration.Add(0.0f);
+		CooldownDuration.Add(0.0f);
 	}
 
 	for (float Value : StatsValue)

@@ -354,6 +354,7 @@ void ADefaultPlayerController::Skill4Triggered()
 	   if (GetWorld()->GetUnpausedTimeSeconds() - GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Skill4Triggered]
 		   <= GetPlayerState<ADefaultPlayerState>()->MaxCooldownDuration[(uint8)CooldownType::Skill4Triggered])
 		   return;
+	   
 	   if (!GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::Skillusable] == 0) {
 		   GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Idle);
 		   return;
@@ -376,6 +377,7 @@ void ADefaultPlayerController::Skill4Triggered()
 	Multicast_SetRotation(GetMouseHitLocation());
 	Server_SetRotation(GetMouseHitLocation());
 
+	UE_LOG(LogTemp, Warning, TEXT("%f, %f"), GetWorld()->GetUnpausedTimeSeconds() - GetPlayerState<ADefaultPlayerState>()->CooldownDuration[(uint8)CooldownType::Skill4Triggered], GetPlayerState<ADefaultPlayerState>()->MaxCooldownDuration[(uint8)CooldownType::Skill4Triggered]);
 	UE_LOG(LogTemp, Warning, TEXT("Skill4 Triggered"));
 	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
 	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Triggered);
@@ -407,9 +409,12 @@ void ADefaultPlayerController::Skill4Triggered()
 
 void ADefaultPlayerController::Skill4Completed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Skill4 Completed"));
-	GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
-	GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Comlpleted);
+	if (GetPlayerState<ADefaultPlayerState>()->Stats[(uint8)EStats::charging] == 0) {
+		UE_LOG(LogTemp, Warning, TEXT("Skill4 Completed"));
+		GetPlayerState<ADefaultPlayerState>()->SetState(ECharacterState::Attack);
+		GetPlayerState<ADefaultPlayerState>()->SetAttackType(CooldownType::Skill4Comlpleted);
+	}
+	
 }
 
 void ADefaultPlayerController::RuneSpell1()
